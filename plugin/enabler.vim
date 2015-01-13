@@ -1,7 +1,7 @@
 " @Author:      Tom Link (micathom AT gmail com?subject=[vim])
 " @GIT:         http://github.com/tomtom/enabler_vim/
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    59
+" @Revision:    60
 " GetLatestVimScripts: 0 0 :AutoInstall: enabler.vim
 " Enable plugins
 
@@ -86,9 +86,3 @@ augroup END
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
-finish
-
-CHANGES:
-0.1
-- Initial release
-
