@@ -1,0 +1,213 @@
+*enabler.txt*         Load plugins/bundles
+                      Author: Tom Link, micathom at gmail com
+
+
+This plugin enables bundles (as used by pathogen) and loads the 
+respective plugins as requested by the user. This plugin provides means to 
+enable bundles when:
+
+    - explicitely loading some bundles via |:Enableplugin|
+    - setting a filetype (see |:Enablefiletype|)
+    - calling an unknown function (see |:Enableautoload|),
+    - invoking a map (see |:Enablemap|)
+    - calling a command (see |:Enablecommand|)
+
+
+-----------------------------------------------------------------------
+Install~
+
+In order to install the vba, open the vba file in VIM and type: >
+
+    :so %
+
+See :help vimball for details.
+
+Also available via git: http://github.com/tomtom/enabler_vim/
+
+You probably have to insert the following lines at the top of the |vimrc| file:
+
+If the enabler plugin is installed as a bundle: >
+
+    " Add the directory of the enabler bundle to 'rtp' (the value may differ 
+    " from your setup)
+    set rtp+=$HOME/.vim/bundle/enabler_vim
+    " Load the plugin
+    runtime! plugin/enabler.vim
+
+If it is installed in ~/.vim: >
+
+    runtime! plugin/enabler.vim
+
+========================================================================
+Contents~
+
+        :Enableplugin ............ |:Enableplugin|
+        :Enableautoload .......... |:Enableautoload|
+        :Enablefiletype .......... |:Enablefiletype|
+        :Enablecommand ........... |:Enablecommand|
+        :Enablemap ............... |:Enablemap|
+        :Enableupdate ............ |:Enableupdate|
+        g:enabler#dirs ........... |g:enabler#dirs|
+        g:enabler#exclude_rx ..... |g:enabler#exclude_rx|
+        g:enabler#exclude_dirs ... |g:enabler#exclude_dirs|
+        g:enabler#rtp_pos ........ |g:enabler#rtp_pos|
+        g:enabler#config_dir ..... |g:enabler#config_dir|
+        g:enabler#debug .......... |g:enabler#debug|
+        enabler#Update ........... |enabler#Update()|
+        enabler#Dependency ....... |enabler#Dependency()|
+        enabler#Complete ......... |enabler#Complete()|
+        enabler#Plugin ........... |enabler#Plugin()|
+        enabler#Autoload ......... |enabler#Autoload()|
+        enabler#Ftplugin ......... |enabler#Ftplugin()|
+        enabler#Command .......... |enabler#Command()|
+        enabler#Map .............. |enabler#Map()|
+        enabler#FuncUndefined .... |enabler#FuncUndefined()|
+        enabler#AutoFiletype ..... |enabler#AutoFiletype()|
+
+
+========================================================================
+plugin/enabler.vim~
+
+                                                    *:Enableplugin*
+:Enableplugin[!] PLUGINS ...
+    Enable one or more plugin. This will add the respective path to 
+    'runtimepath' and load the plugin file.
+
+    When used from vimrc, plugins are loaded on the |VimEnter| event after 
+    processing other startup files. With the optional |<bang>|, the plugin 
+    is loaded right away.
+
+    Before loading a bundle/plugin, a configuration file 
+    `enabler/{BUNDLE}.vim` will be loaded. Most plugins allow users to 
+    customize aspects of plugin behaviour by setting certain variables 
+    before loading the plugin. See also |g:enabler#config_dir|.
+
+    Example:
+      :Enableplugin! tlib_vim
+      :Enableplugin tcomment_vim checksyntax_vim
+
+                                                    *:Enableautoload*
+:Enableautoload[!] REGEXP PLUGINS ...
+    When an autoload function with a prefix matching REGEXP is loaded but 
+    yet undefined (see |FuncUndefined|), load PLUGINS.
+
+    Example:
+      :Enableautoload ^enable# enabler_vim
+
+                                                    *:Enablefiletype*
+:Enablefiletype[!] FILETYPE PLUGINS ...
+    When 'filetype' is set, load PLUGINS.
+
+    Before loading the plugins, the configuration file 
+    `enabler/ft/{FILETYPE}.vim` will be loaded (see 
+    |g:enabler#config_dir|).
+
+    Example:
+      :Enablefiletype scala scala-vim
+
+                                                    *:Enablecommand*
+:Enablecommand[!] [OPTIONS] COMMAND PLUGINS ...
+    Define a dummy COMMAND that will load PLUGINS upon first invocation.
+    The dummy command will be deleted. It is assumed that one of the 
+    loaded PLUGINS will redefine the command.
+
+    OPTIONS is a list of |:command|'s arguments.
+
+    Example:
+      :Enablecommand TMarks tmarks_vim
+
+                                                    *:Enablemap*
+:Enablemap PLUGIN [MAPCMD] [MAPARGS] LHS [RHS]
+    Call |enabler#Map()| with MAP and [PLUGIN] as arguments.
+    By default |:map| is used as MAPCMD. If no RHS is defined, it is 
+    assumed that PLUGIN will define the map.
+
+    Examples:
+      :Enablermap tmarks_vim <silent> <f2> :TMarks<cr>
+      :Enablermap ttoc_vim inoremap <silent> <f10> :TToC<cr>
+
+                                                    *:Enableupdate*
+:Enableupdate
+    Update the list of known plugins -- e.g. after installing a new 
+    plugin while VIM is running.
+
+
+========================================================================
+autoload/enabler.vim~
+
+                                                    *g:enabler#dirs*
+g:enabler#dirs                 (default: split(globpath(&rtp, '/bundle'), '\n'))
+    A list of directories where plugins are stored.
+
+    NOTE: Enabler doesn't provide a way to 
+    download/update/remove/build these plugins. Users should use one 
+    of the other vim plugin managers available, shell scripts or 
+    whatever.
+
+                                                    *g:enabler#exclude_rx*
+g:enabler#exclude_rx           (default: '^[._]')
+    Sub-directories matching this |regexp| will be excluded.
+
+                                                    *g:enabler#exclude_dirs*
+g:enabler#exclude_dirs         (default: ['bundle'])
+    Sub-directories in |g:enabler#dirs| that should be excluded.
+
+                                                    *g:enabler#rtp_pos*
+g:enabler#rtp_pos              (default: 1)
+    Insert new dirs at this position in 'runtimepath'.
+    Corresponding "after" directories will always be added at the last 
+    position.
+
+    CAUTION: This variable must be set before the first invocation.
+
+                                                    *g:enabler#config_dir*
+g:enabler#config_dir           (default: '')
+    The directory for configuration files.
+    If empty, configuration files will be searched in 'runtimepath'.
+    Configuration files will (normally) be loaded only once. They are 
+    meant to help users to keep their |vimrc| file small.
+
+                                                    *g:enabler#debug*
+g:enabler#debug                (default: 0)
+
+                                                    *enabler#Update()*
+enabler#Update()
+
+                                                    *enabler#Dependency()*
+enabler#Dependency(plugin, dependencies)
+    Define a list of dependencies for a plugin.
+
+    Examples:
+      call enabler#Dependency('vikitasks_vim', ['viki_vim'])
+
+                                                    *enabler#Complete()*
+enabler#Complete(lead, line, col)
+
+                                                    *enabler#Plugin()*
+enabler#Plugin(plugins, ?load_now=0, ?[subdir_rxs])
+    If load_now == 1, load the vim files right away.
+
+                                                    *enabler#Autoload()*
+enabler#Autoload(rx, ...)
+
+                                                    *enabler#Ftplugin()*
+enabler#Ftplugin(ft, ...)
+
+                                                    *enabler#Command()*
+enabler#Command(...)
+
+                                                    *enabler#Map()*
+enabler#Map(args, plugins)
+    Define a dummy map that will load PLUGINS upon first invocation.
+    Examples:
+      call enabler#Map('<silent> <f2> :TMarks<cr>', ['tmarks_vim'])
+
+                                                    *enabler#FuncUndefined()*
+enabler#FuncUndefined(fn)
+
+                                                    *enabler#AutoFiletype()*
+enabler#AutoFiletype(ft)
+
+
+
+vim:tw=78:fo=w2croql:isk=!-~,^*,^|,^":ts=8:ft=help:norl:
