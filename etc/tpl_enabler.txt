@@ -1,0 +1,41 @@
+*enabler.txt*         Load plugins/bundles
+                      Author: Tom Link, micathom at gmail com
+
+
+This plugin enables bundles (as used by pathogen) and loads the 
+respective plugins as requested by the user. This plugin provides means to 
+enable bundles when:
+
+    - explicitely loading some bundles via |:Enableplugin|
+    - setting a filetype (see |:Enablefiletype|)
+    - calling an unknown function (see |:Enableautoload|),
+    - invoking a map (see |:Enablemap|)
+    - calling a command (see |:Enablecommand|)
+
+
+-----------------------------------------------------------------------
+Install~
+
+In order to install the vba, open the vba file in VIM and type: >
+
+    :so %%
+
+See :help vimball for details.
+
+Also available via git: http://github.com/tomtom/enabler_vim/
+
+You probably have to insert the following lines at the top of the |vimrc| file:
+
+If the enabler plugin is installed as a bundle: >
+
+    " Add the directory of the enabler bundle to 'rtp' (the value may differ 
+    " from your setup)
+    set rtp+=$HOME/.vim/bundle/enabler_vim
+    " Load the plugin
+    runtime! plugin/enabler.vim
+
+If it is installed in ~/.vim: >
+
+    runtime! plugin/enabler.vim
+
+%s

@@ -1,0 +1,18 @@
+
+This plugin enables bundles (as used by pathogen) and loads the 
+respective plugins as requested by the user. This plugin provides means to 
+enable bundles when:
+
+    - explicitely loading some bundles via |:Enableplugin|
+    - setting a filetype (see |:Enablefiletype|)
+    - calling an unknown function (see |:Enableautoload|),
+    - invoking a map (see |:Enablemap|)
+    - calling a command (see |:Enablecommand|)
+
+
+-----------------------------------------------------------------------
+
+Status:  Experimental
+Install: See http://github.com/tomtom/vimtlib/blob/master/INSTALL.TXT
+See http://github.com/tomtom for related plugins.
+
