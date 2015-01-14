@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    334
+" @Revision:    340
 
 
 if !exists('g:enabler#dirs')
@@ -105,7 +105,6 @@ function! enabler#Plugin(plugins, ...) "{{{3
     let dirs = s:Dirs()
     let rtp = split(&rtp, ',')
     let files = []
-    let after = []
     for pname in a:plugins
         if !has_key(dirs, pname)
             echoerr "Enabler: Unknown plugin:" pname
@@ -114,7 +113,7 @@ function! enabler#Plugin(plugins, ...) "{{{3
                 call enabler#Plugin(s:dependencies[a:plugin], load_now)
             endif
             let dir = dirs[pname]
-            let ndir = len(dir)
+            let ndir = len(dir) + len('/')
             if index(rtp, dir) == -1
                 let rtp = insert(rtp, dir, s:rtp_pos)
                 let s:rtp_pos += 1
@@ -128,17 +127,16 @@ function! enabler#Plugin(plugins, ...) "{{{3
                     endfor
                     call remove(s:undefine, pname)
                 endif
+                let adir = dir .'/after'
+                if isdirectory(adir)
+                    let rtp = insert(rtp, adir, -1)
+                endif
                 if load_now == 1
                     let vimfiles = split(glob(dir .'/**/*.vim'), '\n')
-                    if !empty(filter(copy(vimfiles), 'v:val =~# ''[\/]after[\/]'''))
-                        let rtp = insert(rtp, dir .'/after', -1)
-                    endif
                     for fname_rx in fname_rxs
                         let sfiles = filter(copy(vimfiles), 'v:val =~# fname_rx')
-                        for fname in sfiles
-                            call add(files, fname)
-                            call add(after, 'after'. strpart(fname, ndir))
-                        endfor
+                        let sfiles = map(sfiles, 'strpart(v:val, ndir)')
+                        let files += sfiles
                     endfor
                 endif
                 call s:LoadConfig(pname)
@@ -148,10 +146,7 @@ function! enabler#Plugin(plugins, ...) "{{{3
     let &rtp = join(rtp, ',')
     if load_now == 1
         for file in files
-            exec 'source' fnameescape(file)
-        endfor
-        for file in after
-            exec 'runtime!' fnameescape(file)
+            exec 'runtime' fnameescape(file)
         endfor
     endif
 endf
