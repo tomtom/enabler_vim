@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    340
+" @Revision:    347
 
 
 if !exists('g:enabler#dirs')
@@ -139,12 +139,12 @@ function! enabler#Plugin(plugins, ...) "{{{3
                         let files += sfiles
                     endfor
                 endif
-                call s:LoadConfig(pname)
+                call s:LoadConfig('bundle/'. pname)
             endif
         endif
     endfor
     let &rtp = join(rtp, ',')
-    if load_now == 1
+    if load_now
         for file in files
             exec 'runtime' fnameescape(file)
         endfor
@@ -178,6 +178,9 @@ endf
 
 function! s:AddUndefine(plugins, undef) "{{{3
     for plugin in a:plugins
+        if empty(plugin)
+            echoerr string(a:plugins) a:undef
+        endif
         if !has_key(s:undefine, plugin)
             let s:undefine[plugin] = [a:undef]
         else
@@ -265,7 +268,25 @@ function! s:Command(cmd, plugins, bang, range, args) "{{{3
     " exec 'delcommand' a:cmd
     call enabler#Plugin(a:plugins)
     let range = join(filter(copy(a:range), '!empty(v:val)'), ',')
-    exec (range . a:cmd . a:bang) a:args
+    if exists(':'. a:cmd) == 2
+        try
+            exec range . a:cmd . a:bang .' '. a:args
+        catch /^Vim\%((\a\+)\)\=:E481/
+            exec a:cmd . a:bang .' '. a:args
+        catch /^Vim\%((\a\+)\)\=:E121/
+            " Ignore exception: was probably caused by a local variable 
+            " that isn't visible in this context.
+        catch
+            echohl Error
+            echom "Exception" v:exception "from" v:throwpoint
+            echom v:errmsg
+            echohl NONE
+        endtry
+    else
+        echohl Error
+        echom "Enabler: Unknown command:" a:cmd
+        echohl NONE
+    endif
 endf
 
 
