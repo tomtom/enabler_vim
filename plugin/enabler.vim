@@ -1,7 +1,7 @@
 " @Author:      Tom Link (micathom AT gmail com?subject=[vim])
 " @GIT:         http://github.com/tomtom/enabler_vim/
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    62
+" @Revision:    74
 " GetLatestVimScripts: 0 0 :AutoInstall: enabler.vim
 " Enable plugins
 
@@ -12,6 +12,12 @@ let loaded_enabler = 1
 
 let s:save_cpo = &cpo
 set cpo&vim
+
+
+if !exists('g:enabler_autofile')
+    " If non-empty, load this file with enabler definitions on startup.
+    let g:enabler_autofile = ''   "{{{2
+endif
 
 
 " :display: :Enableplugin[!] PLUGINS ...
@@ -77,11 +83,19 @@ command! -nargs=+ -complete=custom,enabler#Complete Enablemap let s:map_plugin =
 command! -bar Enableupdate call enabler#Update()
 
 
+command! -nargs=* -complete=file EnableGenerate call enabler#auto#Generate(<f-args>)
+
+
 augroup Enabler
     autocmd!
     autocmd FuncUndefined * call enabler#FuncUndefined(expand("<afile>"))
     autocmd FileType * call enabler#AutoFiletype(expand("<amatch>"))
 augroup END
+
+
+if !empty(g:enabler_autofile) && filereadable(g:enabler_autofile)
+    exec 'source' fnameescape(g:enabler_autofile)
+endif
 
 
 let &cpo = s:save_cpo
