@@ -1,7 +1,7 @@
 " @Author:      Tom Link (micathom AT gmail com?subject=[vim])
 " @GIT:         http://github.com/tomtom/enabler_vim/
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    76
+" @Revision:    79
 " GetLatestVimScripts: 0 0 :AutoInstall: enabler.vim
 " Enable plugins
 
@@ -83,7 +83,7 @@ command! -nargs=+ -complete=custom,enabler#Complete Enablemap let s:map_plugin =
 command! -bar Enableupdate call enabler#Update()
 
 
-command! -nargs=* -complete=file EnableGenerate call enabler#auto#Generate(<f-args>)
+command! -nargs=* -complete=file Enablegenerate call enabler#auto#Generate(<f-args>)
 
 
 augroup Enabler
