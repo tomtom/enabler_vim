@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    110
+" @Revision:    139
 
 
 if !exists('g:enabler#auto#dirs')
@@ -28,15 +28,17 @@ function! enabler#auto#Generate(...) "{{{3
             echoerr "Enabler: No tags files"
         else
             try
+                let fts = s:ScanFtplugins(s:ListVimFiles())
                 let &l:tags = join(tags_files, ',')
                 let tlist = taglist('.')
                 let tlist = filter(tlist, 'index(["m", "c", "f"], v:val.kind) != -1')
                 " TLogVAR empty(tlist)
-                let fts = s:ProcessTagList('s:AutoFtplugins', tlist)
+                " let fts = s:ProcessTagList('s:AutoFtplugins', tlist)
                 let tlist = filter(tlist, 'v:val.filename =~ ''\<\(plugin\|autoload\|ftplugin\|syntax\|indent\|ftdetect\)[\/][^\/]\{-}.vim''')
+                let fns = s:ProcessTagList('s:AutoFunctions', filter(copy(tlist), 'v:val.kind ==# "f"'))
+                let tlist = filter(tlist, 'v:val.filename =~ ''\<\(plugin\)[\/][^\/]\{-}.vim''')
                 let maps = s:ProcessTagList('s:AutoMaps', filter(copy(tlist), 'v:val.kind ==# "m"'))
                 let cmds = s:ProcessTagList('s:AutoCommands', filter(copy(tlist), 'v:val.kind ==# "c"'))
-                let fns = s:ProcessTagList('s:AutoFunctions', filter(copy(tlist), 'v:val.kind ==# "f"'))
                 let auto = maps + cmds + fns + fts
                 call writefile(auto, g:enabler_autofile)
             finally
@@ -52,6 +54,18 @@ function! s:GuessTagsFiles() "{{{3
     let dirs = join(g:enabler#auto#dirs, ',')
     let tfiles = split(globpath(dirs, 'tags'), '\n') + split(globpath(dirs, '*/tags'), '\n')
     return tfiles
+endf
+
+
+function! s:ListVimFiles() "{{{3
+    let vfiles = []
+    for dir in g:enabler#auto#dirs
+        let ndir = strlen(dir .'/')
+        let vfiles1 = split(globpath(dir, '**/*.vim'), '\n')
+        let vfiles1 = map(vfiles1, '[v:val, strpart(v:val, ndir)]')
+        let vfiles += vfiles1
+    endfor
+    return vfiles
 endf
 
 
@@ -132,6 +146,42 @@ function! s:AutoFunctions(plugin, tdef) "{{{3
     else
         return ''
     endif
+endf
+
+
+function! s:ScanFtplugins(files) "{{{3
+    let rx = '^[^\/]\+[\/]\%(indent\|ftplugin\|syntax\|ftdetect\)[\/]\%(\([^\/]\+\)[\/]\|\([^\/_.]\+\)\%(_[^\/.]\+\)\?\.vim\)'
+    let fts = {}
+    let eft = []
+    for [fullname, filename] in a:files
+        let m = matchlist(filename, rx)
+        if !empty(m)
+            let ft = m[1]
+            if empty(ft)
+                let ft = m[2]
+            endif
+            if !empty(ft)
+                let plugin = s:GetBundleName(filename)
+                if !has_key(fts, ft)
+                    let fts[ft] = {}
+                endif
+                let fts[ft][plugin] = 1
+                if filename =~ '^[^\/]\+[\/]ftdetect[\/]\%(\([^\/]\+\)[\/]\|\([^\/_.]\+\)\%(_[^\/.]\+\)\?\.vim\)'
+                    let lines = readfile(fullname)
+                    let lines = filter(lines, '!empty(v:val) && v:val !~ ''^\s*"''')
+                    let eft += lines
+                    " let pats = map(lines, 'matchstr(v:val, ''\<au\%[tocmd].\{-}\(BufNewFile|BufRead\)\s\+\zs\S\+'')')
+                    " let pats = filter(pats, '!empty(v:val) && v:val !~ ''^\s*"''')
+                    " for pat in pats
+                    "     let enable = printf('automd Enabler BufNewFile,BufRead %s call enabler#Ftdetect(%s, %s)', ft, string(ft), string(plugin))
+                    "     call add(eft, enable)
+                    " endfor
+                endif
+            endif
+        endif
+    endfor
+    let eft += map(items(fts), 'printf("call enabler#Ftplugin(%s, %s)", string(v:val[0]), string(keys(v:val[1])))')
+    return eft
 endf
 
 

@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    347
+" @Revision:    355
 
 
 if !exists('g:enabler#dirs')
@@ -196,9 +196,15 @@ function! enabler#Autoload(rx, ...) "{{{3
 endf
 
 
+" :display: enabler#Ftplugin(ft, PLUGINS...) or enabler#Ftplugin(ft, [PLUGINS])
 function! enabler#Ftplugin(ft, ...) "{{{3
-    let s:ftplugins[a:ft] = get(s:ftplugins, a:ft, []) + a:000
-    call s:AddUndefine(a:000, printf('call s:Remove(s:ftplugins, %s)', string(a:ft)))
+    if type(a:1) == 3
+        let ps = a:1
+    else
+        let ps = a:000
+    endif
+    let s:ftplugins[a:ft] = get(s:ftplugins, a:ft, []) + ps
+    call s:AddUndefine(ps, printf('call s:Remove(s:ftplugins, %s)', string(a:ft)))
 endf
 
 
