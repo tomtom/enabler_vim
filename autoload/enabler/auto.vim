@@ -1,10 +1,19 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    139
+" @Revision:    212
 
 
 if !exists('g:enabler#auto#dirs')
     let g:enabler#auto#dirs = g:enabler#dirs   "{{{2
+endif
+
+
+if !exists('g:enabler#auto#kinds')
+    " d ... filetype detection/plugins
+    " c ... commands
+    " f ... functions, autoloads
+    " m ... maps
+    let g:enabler#auto#kinds = {'ftplugins': 1, 'plugin': 'cf', 'autoload': 'f'}   "{{{2
 endif
 
 
@@ -18,34 +27,48 @@ function! enabler#auto#Generate(...) "{{{3
     if empty(g:enabler_autofile)
         echoerr "Enabler: Please set g:enabler_autofile first"
     else
-        " Update only if tags_files has changed
-        " -> requires tlib
-        let tags = &l:tags
-        let s:tagfiles = map(tagfiles(), 'fnamemodify(v:val, ":h")')
-        let tags_files = a:0 >= 1 && !empty(a:1) ? a:1 : s:GuessTagsFiles()
-        " TLogVAR tags_files
-        if empty(tags_files)
-            echoerr "Enabler: No tags files"
+        let vfiles = s:ListVimFiles()
+        let fts = get(g:enabler#auto#kinds, 'ftplugins', 1) ? s:ScanFtplugins(vfiles) : []
+        let enablers = {}
+        let progressbar = exists('g:loaded_tlib')
+        if progressbar
+            call tlib#progressbar#Init(len(vfiles), 'Enabler: Scanning %s', 20)
         else
-            try
-                let fts = s:ScanFtplugins(s:ListVimFiles())
-                let &l:tags = join(tags_files, ',')
-                let tlist = taglist('.')
-                let tlist = filter(tlist, 'index(["m", "c", "f"], v:val.kind) != -1')
-                " TLogVAR empty(tlist)
-                " let fts = s:ProcessTagList('s:AutoFtplugins', tlist)
-                let tlist = filter(tlist, 'v:val.filename =~ ''\<\(plugin\|autoload\|ftplugin\|syntax\|indent\|ftdetect\)[\/][^\/]\{-}.vim''')
-                let fns = s:ProcessTagList('s:AutoFunctions', filter(copy(tlist), 'v:val.kind ==# "f"'))
-                let tlist = filter(tlist, 'v:val.filename =~ ''\<\(plugin\)[\/][^\/]\{-}.vim''')
-                let maps = s:ProcessTagList('s:AutoMaps', filter(copy(tlist), 'v:val.kind ==# "m"'))
-                let cmds = s:ProcessTagList('s:AutoCommands', filter(copy(tlist), 'v:val.kind ==# "c"'))
-                let auto = maps + cmds + fns + fts
-                call writefile(auto, g:enabler_autofile)
-            finally
-                let &l:tags = tags
-                unlet! s:tagfiles
-            endtry
+            echo 'TPlugin: Scanning '. root .' ...'
         endif
+        try
+            let fidx = 0
+            for [fullname, filename] in vfiles
+                if progressbar
+                    let fidx += 1
+                    call tlib#progressbar#Display(fidx)
+                endif
+                " echom "DBG" filename
+                if filename =~ '^[^\/]\+[\/]plugin[\/][^\/]\{-}\.vim$'
+                    let kinds = get(g:enabler#auto#kinds, 'plugin', 'cf')
+                elseif filename =~ '^[^\/]\+[\/]autoload[\/].\{-}\.vim$'
+                    let kinds = get(g:enabler#auto#kinds, 'autoload', 'f')
+                else
+                    continue
+                endif
+                let plugin = s:GetBundleName(filename)
+                if plugin !~ '^enabler\(_vim\)\?$'
+                    let le = len(enablers)
+                    " TLogVAR filename, kinds, plugin
+                    let enablers = s:ProcessFile(enablers, plugin, fullname, kinds)
+                    " TLogVAR len(enablers)-le
+                endif
+            endfor
+        finally
+            if progressbar
+                call tlib#progressbar#Restore()
+            else
+                redraw
+            endif
+        endtry
+        let auto = keys(enablers)
+        let auto = sort(auto)
+        call writefile(fts + auto, g:enabler_autofile)
     endif
 endf
 
@@ -69,83 +92,9 @@ function! s:ListVimFiles() "{{{3
 endf
 
 
-function! s:ProcessTagList(fn, tlist) "{{{3
-    " TLogVAR a:fn
-    let akeys = {}
-    let alist = []
-    let s:cache = {}
-    try
-        for tdef in a:tlist
-            let id = tdef.kind . tdef.name
-            if has_key(akeys, id)
-                echohl WarningMsg
-                echom "Autoenabler: Already defined:" string(tdef)
-                echohl NONE
-            else
-                let plugin = s:GetBundleName(tdef.filename)
-                if plugin !~ '^enabler\(_vim\)$'
-                    let ecmd = call(a:fn, [plugin, tdef])
-                    if !empty(ecmd)
-                        " TLogVAR id, ecmd
-                        let akeys[id] = 1
-                        call add(alist, ecmd)
-                    endif
-                endif
-            endif
-        endfor
-    finally
-        unlet! s:cache
-    endtry
-    return alist
-endf
-
-
 function! s:GetBundleName(filename) "{{{3
     let bundle = matchstr(a:filename, '[^\/]\+\ze[\/]\(plugin\|autoload\|ftplugin\|syntax\|indent\|ftdetect\)[\/].\{-}\.vim$')
     return bundle
-endf
-
-
-function! s:AutoMaps(plugin, tdef) "{{{3
-    let tag = matchstr(a:tdef.cmd, '^/\^\zs.\?\%(nore\)\?map\s\+\%(<\%(buffer\|nowait\|silent\|special\|script\|expr\|unique\)>\s\)\+\S\+')
-    if !empty(tag)
-        return printf("call enabler#Map(%s, [%s])", string(tag), string(a:plugin))
-    else
-        return ''
-    endif
-endf
-
-
-function! s:AutoCommands(plugin, tdef) "{{{3
-    let tag = matchstr(a:tdef.cmd, '^/\^\s*com\%[mand]!\?\s\+\zs\%(\%(-\S\+\)\s\+\)*\w\+')
-    if !empty(tag)
-        let args = split(tag, '\s\+')
-        call add(args, a:plugin)
-        return printf("call enabler#Command(%s)", join(map(args, 'string(v:val)'), ', '))
-    else
-        return ''
-    endif
-endf
-
-
-function! s:AutoFunctions(plugin, tdef) "{{{3
-    let tag = matchlist(a:tdef.cmd, '^/\^\s*fu\%[nction]!\?\s\+\zs\%(\(\w\+#\)\|\(\u\w\+\)\s*(\)')
-    if !empty(tag)
-        if !empty(tag[1])
-            let rx = '\V\^'. tag[1]
-            if has_key(s:cache, rx)
-                return ''
-            endif
-        elseif !empty(tag[2])
-            let rx = '\V\^'. tag[2] .'\$'
-        else
-            echoerr "Enabler: AutoFunctions: Internal error:" a:tdef.cmd
-        endif
-        let s:cache[rx] = 1
-        return printf("call enabler#Autoload(%s, %s)", string(rx), string(a:plugin))
-    else
-        return ''
-    endif
 endf
 
 
@@ -170,12 +119,6 @@ function! s:ScanFtplugins(files) "{{{3
                     let lines = readfile(fullname)
                     let lines = filter(lines, '!empty(v:val) && v:val !~ ''^\s*"''')
                     let eft += lines
-                    " let pats = map(lines, 'matchstr(v:val, ''\<au\%[tocmd].\{-}\(BufNewFile|BufRead\)\s\+\zs\S\+'')')
-                    " let pats = filter(pats, '!empty(v:val) && v:val !~ ''^\s*"''')
-                    " for pat in pats
-                    "     let enable = printf('automd Enabler BufNewFile,BufRead %s call enabler#Ftdetect(%s, %s)', ft, string(ft), string(plugin))
-                    "     call add(eft, enable)
-                    " endfor
                 endif
             endif
         endif
@@ -185,21 +128,82 @@ function! s:ScanFtplugins(files) "{{{3
 endf
 
 
-function! s:AutoFtplugins(plugin, tdef) "{{{3
-    let m = matchlist(a:tdef.filename, '[\/]\%(indent\|ftplugin\|syntax\|ftdetect\)[\/]\%(\([^\/]\+\)[\/]\|\([^\/_.]\+\)\%(_[^\/.]\+\)\?\.vim\)')
-    if !empty(m)
-        let ft = m[1]
-        if empty(ft)
-            let ft = m[2]
+function! s:ProcessFile(enablers, plugin, fullname, kinds) "{{{3
+    " TLogVAR a:plugin, a:fullname, a:kinds
+    let lines = split(substitute(join(readfile(a:fullname), "\n"), '\n\_s\+\\', '', 'g'), '\n')
+    let enablers = a:enablers
+    for line in lines
+        if line !~ '\S' || line =~ '^\s*"'
+            continue
         endif
-        if !empty(ft)
-            let cid = ft .'_'. a:plugin
-            if !has_key(s:cache, cid)
-                let s:cache[cid] = 1
-                return printf('call enabler#Ftplugin(%s, %s)', string(ft), string(a:plugin))
-            endif
+        if stridx(a:kinds, 'm') != -1
+            let enablers = s:ScanMap(a:plugin, a:enablers, line)
         endif
+        if stridx(a:kinds, 'c') != -1
+            let enablers = s:ScanCommand(a:plugin, a:enablers, line)
+        endif
+        if stridx(a:kinds, 'f') != -1
+            let enablers = s:ScanFunction(a:plugin, a:enablers, line)
+        endif
+    endfor
+    return enablers
+endf
+
+
+function! s:ScanMap(plugin, enablers, line) "{{{3
+    let tag = matchstr(a:line, '^\s*\zs.\?\%(nore\)\?map\s\+\%(<\%(buffer\|nowait\|silent\|special\|script\|expr\|unique\)>\s\)\+\S\+')
+    if !empty(tag)
+        return s:Add(a:plugin, a:enablers, 1, ' '.tag, printf("call enabler#Map(%s, [%s])", string(tag), string(a:plugin)))
+    else
+        return a:enablers
     endif
-    return ''
+endf
+
+
+function! s:ScanCommand(plugin, enablers, line) "{{{3
+    let tag = matchstr(a:line, '^\s*com\%[mand]!\?\s\+\zs\%(\%(-\S\+\)\s\+\)*\S\+')
+    " TLogVAR a:line, tag
+    if !empty(tag)
+        let args = split(tag, '\s\+')
+        return s:Add(a:plugin, a:enablers, 1, ':'. tag, printf("call enabler#Command(%s, %s)",
+                    \ join(map(args, 'string(v:val)'), ', '),
+                    \ string(a:plugin)))
+    else
+        return a:enablers
+    endif
+endf
+
+
+function! s:ScanFunction(plugin, enablers, line) "{{{3
+    let tag = matchlist(a:line, '^\s*fu\%[nction]!\?\s\+\zs\%(\(\w\+#\)\|\(\u\w\+\)\s*(\)')
+    if !empty(tag)
+        if !empty(tag[1])
+            let rx = '\V\^'. tag[1]
+            let warn = 0
+        elseif !empty(tag[2])
+            let rx = '\V\^'. tag[2] .'\$'
+            let warn = 1
+        else
+            echoerr "Enabler: ScanFunction: Internal error:" a:line
+        endif
+        return s:Add(a:plugin, a:enablers, warn, '*'. rx, printf("call enabler#Autoload(%s, %s)", string(rx), string(a:plugin)))
+    else
+        return a:enablers
+    endif
+endf
+
+
+function! s:Add(plugin, enablers, warn, id, line) "{{{3
+    " TLogVAR a:warn, a:id, a:line
+    if has_key(a:enablers, a:line)
+        if a:warn && a:enablers[a:line] != a:plugin
+            echohl WarningMsg
+            echom "Autoenabler: Conflicting defintions for:" a:line
+            echohl NONE
+        endif
+    else
+        let a:enablers[a:line] = a:plugin
+    endif
+    return a:enablers
 endf
 
