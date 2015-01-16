@@ -41,32 +41,41 @@ If it is installed in ~/.vim: >
 ========================================================================
 Contents~
 
-        :Enableplugin ............ |:Enableplugin|
-        :Enableautoload .......... |:Enableautoload|
-        :Enablefiletype .......... |:Enablefiletype|
-        :Enablecommand ........... |:Enablecommand|
-        :Enablemap ............... |:Enablemap|
-        :Enableupdate ............ |:Enableupdate|
-        g:enabler#dirs ........... |g:enabler#dirs|
-        g:enabler#exclude_rx ..... |g:enabler#exclude_rx|
-        g:enabler#exclude_dirs ... |g:enabler#exclude_dirs|
-        g:enabler#rtp_pos ........ |g:enabler#rtp_pos|
-        g:enabler#config_dir ..... |g:enabler#config_dir|
-        g:enabler#debug .......... |g:enabler#debug|
-        enabler#Update ........... |enabler#Update()|
-        enabler#Dependency ....... |enabler#Dependency()|
-        enabler#Complete ......... |enabler#Complete()|
-        enabler#Plugin ........... |enabler#Plugin()|
-        enabler#Autoload ......... |enabler#Autoload()|
-        enabler#Ftplugin ......... |enabler#Ftplugin()|
-        enabler#Command .......... |enabler#Command()|
-        enabler#Map .............. |enabler#Map()|
-        enabler#FuncUndefined .... |enabler#FuncUndefined()|
-        enabler#AutoFiletype ..... |enabler#AutoFiletype()|
+        g:enabler_autofile .......... |g:enabler_autofile|
+        :Enableplugin ............... |:Enableplugin|
+        :Enableautoload ............. |:Enableautoload|
+        :Enablefiletype ............. |:Enablefiletype|
+        :Enablecommand .............. |:Enablecommand|
+        :Enablemap .................. |:Enablemap|
+        :Enableupdate ............... |:Enableupdate|
+        :Enablegenerate ............. |:Enablegenerate|
+        g:enabler#auto#dirs ......... |g:enabler#auto#dirs|
+        g:enabler#auto#kinds ........ |g:enabler#auto#kinds|
+        enabler#auto#Generate ....... |enabler#auto#Generate()|
+        g:enabler#dirs .............. |g:enabler#dirs|
+        g:enabler#exclude_rx ........ |g:enabler#exclude_rx|
+        g:enabler#exclude_dirs ...... |g:enabler#exclude_dirs|
+        g:enabler#rtp_pos ........... |g:enabler#rtp_pos|
+        g:enabler#config_dir ........ |g:enabler#config_dir|
+        g:enabler#debug ............. |g:enabler#debug|
+        enabler#Update .............. |enabler#Update()|
+        enabler#Dependency .......... |enabler#Dependency()|
+        enabler#Complete ............ |enabler#Complete()|
+        enabler#Plugin .............. |enabler#Plugin()|
+        enabler#Autoload ............ |enabler#Autoload()|
+        enabler#Ftplugin ............ |enabler#Ftplugin()|
+        enabler#Command ............. |enabler#Command()|
+        enabler#Map ................. |enabler#Map()|
+        enabler#FuncUndefined ....... |enabler#FuncUndefined()|
+        enabler#AutoFiletype ........ |enabler#AutoFiletype()|
 
 
 ========================================================================
 plugin/enabler.vim~
+
+                                                    *g:enabler_autofile*
+g:enabler_autofile             (default: '')
+    If non-empty, load this file with enabler definitions on startup.
 
                                                     *:Enableplugin*
 :Enableplugin[!] PLUGINS ...
@@ -131,6 +140,31 @@ plugin/enabler.vim~
     Update the list of known plugins -- e.g. after installing a new 
     plugin while VIM is running.
 
+                                                    *:Enablegenerate*
+:Enablegenerate
+
+
+========================================================================
+autoload/enabler/auto.vim~
+
+                                                    *g:enabler#auto#dirs*
+g:enabler#auto#dirs            (default: g:enabler#dirs)
+
+                                                    *g:enabler#auto#kinds*
+g:enabler#auto#kinds           (default: {'ftplugins': 1, 'plugin': 'cf', 'autoload': 'f'})
+    d ... filetype detection/plugins
+    c ... commands
+    f ... functions, autoloads
+    m ... maps
+
+                                                    *enabler#auto#Generate()*
+enabler#auto#Generate(?tagfiles=[GUESS])
+    This will generate |g:enabler_autofile|. It will set up stub 
+    definitions that will make bundles easily available.
+
+    If no tagfiles are named, |g:enabler#auto#dirs| will be searched for 
+    tags files.
+
 
 ========================================================================
 autoload/enabler.vim~
@@ -191,7 +225,7 @@ enabler#Plugin(plugins, ?load_now=0, ?[subdir_rxs])
 enabler#Autoload(rx, ...)
 
                                                     *enabler#Ftplugin()*
-enabler#Ftplugin(ft, ...)
+enabler#Ftplugin(ft, PLUGINS...) or enabler#Ftplugin(ft, [PLUGINS])
 
                                                     *enabler#Command()*
 enabler#Command(...)
