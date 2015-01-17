@@ -55,6 +55,7 @@ let s:autoloads = {}
 let s:ftplugins = {}
 let s:dependencies = {}
 let s:undefine = {}
+let s:onload = {}
 
 
 function! enabler#Update() "{{{3
@@ -77,6 +78,16 @@ endf
 function! enabler#Dependency(plugin, dependencies) "{{{3
     let s:dependencies[a:plugin] = get(a:dependencies, a:plugin, []) + a:dependencies
     call s:AddUndefine([a:plugin], printf('call s:Remove(s:dependencies, %s)', string(a:plugin)))
+endf
+
+
+" Execute a vim command after enabling a plugin.
+function! enabler#Onload(plugin, exec) "{{{3
+    if has_key(s:onload, a:plugin)
+        call add(s:onload[a:plugin], a:exec)
+    else
+        let s:onload[a:plugin] = [a:exec]
+    endif
 endf
 
 
@@ -149,6 +160,13 @@ function! enabler#Plugin(plugins, ...) "{{{3
             exec 'runtime' fnameescape(file)
         endfor
     endif
+    for pname in a:plugins
+        if has_key(s:onload, pname)
+            for e in s:onload[pname]
+                exec e
+            endfor
+        endif
+    endfor
 endf
 
 
