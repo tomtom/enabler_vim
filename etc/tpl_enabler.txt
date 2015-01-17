@@ -12,6 +12,10 @@ enable bundles when:
     - invoking a map (see |:Enablemap|)
     - calling a command (see |:Enablecommand|)
 
+Enabler focuses on managing the 'runtimepath' variable and enabling plugins as 
+needed. Enabler doesn't provide a way to download/update/remove/build these 
+plugins. Users should use one of the other vim plugin managers available, shell 
+scripts or whatever.
 
 -----------------------------------------------------------------------
 Install~

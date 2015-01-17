@@ -1,15 +1,10 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    374
+" @Revision:    375
 
 
 if !exists('g:enabler#dirs')
     " A list of directories where plugins are stored.
-    "
-    " NOTE: Enabler doesn't provide a way to 
-    " download/update/remove/build these plugins. Users should use one 
-    " of the other vim plugin managers available, shell scripts or 
-    " whatever.
     let g:enabler#dirs = split(globpath(&rtp, '/bundle'), '\n')   "{{{2
 endif
 

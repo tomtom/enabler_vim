@@ -12,6 +12,10 @@ enable bundles when:
     - invoking a map (see |:Enablemap|)
     - calling a command (see |:Enablecommand|)
 
+Enabler focuses on managing the 'runtimepath' variable and enabling plugins as 
+needed. Enabler doesn't provide a way to download/update/remove/build these 
+plugins. Users should use one of the other vim plugin managers available, shell 
+scripts or whatever.
 
 -----------------------------------------------------------------------
 Install~
@@ -60,6 +64,7 @@ Contents~
         g:enabler#debug ............. |g:enabler#debug|
         enabler#Update .............. |enabler#Update()|
         enabler#Dependency .......... |enabler#Dependency()|
+        enabler#Onload .............. |enabler#Onload()|
         enabler#Complete ............ |enabler#Complete()|
         enabler#Plugin .............. |enabler#Plugin()|
         enabler#Autoload ............ |enabler#Autoload()|
@@ -115,7 +120,7 @@ g:enabler_autofile             (default: '')
       :Enablefiletype scala scala-vim
 
                                                     *:Enablecommand*
-:Enablecommand[!] [OPTIONS] COMMAND PLUGINS ...
+:Enablecommand[!] PLUGIN [OPTIONS] COMMAND
     Define a dummy COMMAND that will load PLUGINS upon first invocation.
     The dummy command will be deleted. It is assumed that one of the 
     loaded PLUGINS will redefine the command.
@@ -162,8 +167,10 @@ enabler#auto#Generate(?tagfiles=[GUESS])
     This will generate |g:enabler_autofile|. It will set up stub 
     definitions that will make bundles easily available.
 
-    If no tagfiles are named, |g:enabler#auto#dirs| will be searched for 
-    tags files.
+    Only bundles saved under |g:enabler#auto#dirs| will be scanned.
+
+    This will also add any enabler commands found in 
+    `{g:enabler#config_dir}/{PLUGIN}.vim`.
 
 
 ========================================================================
@@ -172,11 +179,6 @@ autoload/enabler.vim~
                                                     *g:enabler#dirs*
 g:enabler#dirs                 (default: split(globpath(&rtp, '/bundle'), '\n'))
     A list of directories where plugins are stored.
-
-    NOTE: Enabler doesn't provide a way to 
-    download/update/remove/build these plugins. Users should use one 
-    of the other vim plugin managers available, shell scripts or 
-    whatever.
 
                                                     *g:enabler#exclude_rx*
 g:enabler#exclude_rx           (default: '^[._]')
@@ -214,6 +216,10 @@ enabler#Dependency(plugin, dependencies)
     Examples:
       call enabler#Dependency('vikitasks_vim', ['viki_vim'])
 
+                                                    *enabler#Onload()*
+enabler#Onload(plugin, exec)
+    Execute a vim command after enabling a plugin.
+
                                                     *enabler#Complete()*
 enabler#Complete(lead, line, col)
 
@@ -228,13 +234,13 @@ enabler#Autoload(rx, ...)
 enabler#Ftplugin(ft, PLUGINS...) or enabler#Ftplugin(ft, [PLUGINS])
 
                                                     *enabler#Command()*
-enabler#Command(...)
+enabler#Command(plugin, "CMD DEF", ?OPTIONS={}) or enabler#Command(plugin, ["CMD", "DEF"], ?OPTIONS={})
 
                                                     *enabler#Map()*
-enabler#Map(args, plugins)
-    Define a dummy map that will load PLUGINS upon first invocation.
+enabler#Map(plugin, args)
+    Define a dummy map that will load PLUGIN upon first invocation.
     Examples:
-      call enabler#Map('<silent> <f2> :TMarks<cr>', ['tmarks_vim'])
+      call enabler#Map('tmarks_vim', '<silent> <f2> :TMarks<cr>')
 
                                                     *enabler#FuncUndefined()*
 enabler#FuncUndefined(fn)
