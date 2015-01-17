@@ -1,7 +1,7 @@
 " @Author:      Tom Link (micathom AT gmail com?subject=[vim])
 " @GIT:         http://github.com/tomtom/enabler_vim/
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    79
+" @Revision:    85
 " GetLatestVimScripts: 0 0 :AutoInstall: enabler.vim
 " Enable plugins
 
@@ -57,7 +57,7 @@ command! -bar -nargs=+ -complete=custom,enabler#Complete Enableautoload call ena
 "   :Enablefiletype scala scala-vim
 command! -bar -nargs=+ -complete=custom,enabler#Complete Enablefiletype call enabler#Ftplugin(<f-args>)
 
-" :display: :Enablecommand[!] [OPTIONS] COMMAND PLUGINS ...
+" :display: :Enablecommand[!] PLUGIN [OPTIONS] COMMAND
 " Define a dummy COMMAND that will load PLUGINS upon first invocation.
 " The dummy command will be deleted. It is assumed that one of the 
 " loaded PLUGINS will redefine the command.
@@ -66,7 +66,7 @@ command! -bar -nargs=+ -complete=custom,enabler#Complete Enablefiletype call ena
 "
 " Example:
 "   :Enablecommand TMarks tmarks_vim
-command! -bar -nargs=+ -complete=custom,enabler#Complete Enablecommand call enabler#Command(<f-args>)
+command! -bar -nargs=+ -complete=custom,enabler#Complete Enablecommand let s:tmp = [<f-args>] | call enabler#Command(s:tmp[0], s:tmp[1:-1]) | unlet! s:tmp
 
 " :display: :Enablemap PLUGIN [MAPCMD] [MAPARGS] LHS [RHS]
 " Call |enabler#Map()| with MAP and [PLUGIN] as arguments.
@@ -76,7 +76,7 @@ command! -bar -nargs=+ -complete=custom,enabler#Complete Enablecommand call enab
 " Examples:
 "   :Enablermap tmarks_vim <silent> <f2> :TMarks<cr>
 "   :Enablermap ttoc_vim inoremap <silent> <f10> :TToC<cr>
-command! -nargs=+ -complete=custom,enabler#Complete Enablemap let s:map_plugin = [<f-args>][0] | call enabler#Map(strpart(<q-args>, len(s:map_plugin) + 1), [s:map_plugin]) | unlet s:map_plugin
+command! -nargs=+ -complete=custom,enabler#Complete Enablemap let s:tmp = [<f-args>] | call enabler#Map(s:tmp[0], s:tmp[1:-1]) | unlet! s:tmp
 
 " Update the list of known plugins -- e.g. after installing a new 
 " plugin while VIM is running.

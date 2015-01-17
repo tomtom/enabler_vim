@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    212
+" @Revision:    224
 
 
 if !exists('g:enabler#auto#dirs')
@@ -21,8 +21,10 @@ endif
 " This will generate |g:enabler_autofile|. It will set up stub 
 " definitions that will make bundles easily available.
 "
-" If no tagfiles are named, |g:enabler#auto#dirs| will be searched for 
-" tags files.
+" Only bundles saved under |g:enabler#auto#dirs| will be scanned.
+"
+" This will also add any enabler commands found in 
+" `{g:enabler#config_dir}/{PLUGIN}.vim`.
 function! enabler#auto#Generate(...) "{{{3
     if empty(g:enabler_autofile)
         echoerr "Enabler: Please set g:enabler_autofile first"
@@ -30,6 +32,7 @@ function! enabler#auto#Generate(...) "{{{3
         let vfiles = s:ListVimFiles()
         let fts = get(g:enabler#auto#kinds, 'ftplugins', 1) ? s:ScanFtplugins(vfiles) : []
         let enablers = {}
+        let plugins = {}
         let progressbar = exists('g:loaded_tlib')
         if progressbar
             call tlib#progressbar#Init(len(vfiles), 'Enabler: Scanning %s', 20)
@@ -53,6 +56,7 @@ function! enabler#auto#Generate(...) "{{{3
                 endif
                 let plugin = s:GetBundleName(filename)
                 if plugin !~ '^enabler\(_vim\)\?$'
+                    let plugins[plugin] = 1
                     let le = len(enablers)
                     " TLogVAR filename, kinds, plugin
                     let enablers = s:ProcessFile(enablers, plugin, fullname, kinds)
@@ -68,6 +72,12 @@ function! enabler#auto#Generate(...) "{{{3
         endtry
         let auto = keys(enablers)
         let auto = sort(auto)
+        for plugin in keys(plugins)
+            let pauto = g:enabler#config_dir .'/'. plugin .'.vim'
+            if filereadable(pauto)
+                let auto += readfile(pauto)
+            endif
+        endfor
         call writefile(fts + auto, g:enabler_autofile)
     endif
 endf
@@ -153,7 +163,7 @@ endf
 function! s:ScanMap(plugin, enablers, line) "{{{3
     let tag = matchstr(a:line, '^\s*\zs.\?\%(nore\)\?map\s\+\%(<\%(buffer\|nowait\|silent\|special\|script\|expr\|unique\)>\s\)\+\S\+')
     if !empty(tag)
-        return s:Add(a:plugin, a:enablers, 1, ' '.tag, printf("call enabler#Map(%s, [%s])", string(tag), string(a:plugin)))
+        return s:Add(a:plugin, a:enablers, 1, ' '.tag, printf("call enabler#Map(%s, %s)", string(a:plugin), string(tag)))
     else
         return a:enablers
     endif
@@ -165,9 +175,10 @@ function! s:ScanCommand(plugin, enablers, line) "{{{3
     " TLogVAR a:line, tag
     if !empty(tag)
         let args = split(tag, '\s\+')
-        return s:Add(a:plugin, a:enablers, 1, ':'. tag, printf("call enabler#Command(%s, %s)",
-                    \ join(map(args, 'string(v:val)'), ', '),
-                    \ string(a:plugin)))
+        return s:Add(a:plugin, a:enablers, 1, ':'. tag, printf("call enabler#Command(%s, [%s])",
+                    \ string(a:plugin),
+                    \ join(map(args, 'string(v:val)'), ', ')
+                    \ ))
     else
         return a:enablers
     endif

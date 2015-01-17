@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    355
+" @Revision:    374
 
 
 if !exists('g:enabler#dirs')
@@ -226,65 +226,37 @@ function! enabler#Ftplugin(ft, ...) "{{{3
 endf
 
 
-function! enabler#Command(...) "{{{3
-    let args = []
-    let cmd = ''
-    let plugins = []
-    let options = {}
-    let mode = 'a'
-    let idx = 1
-    while idx <= a:0
-        let item = a:{idx}
-        if mode == 'a'
-            if item =~ '^-'
-                call add(args, item)
-            else
-                let mode = 'c'
-                continue
-            endif
-        elseif mode == 'c'
-            let cmd = item
-            let mode = 'p'
-        elseif mode == 'p'
-            if type(item) == 4
-                let mode = 'O'
-            elseif item =~ '^\w\+='
-                let mode = 'o'
-                continue
-            else
-                call add(plugins, item)
-            endif
-        elseif mode ==# 'o'
-            let ml = matchlist(item, '^\(\w\+\)=\(.\+\)$')
-            let options[ml[1]] = ml[2]
-        elseif mode ==# 'O'
-            if type(item) == 4
-                let options = item
-            else
-                echoerr 'enabler#Command: Invalid arguments:' string(a:000)
-            endif
-        endif
-        let idx += 1
-        unlet item
-    endwh
-    let sargs = ' '. join(args)
+" :display: enabler#Command(plugin, "CMD DEF", ?OPTIONS={}) or enabler#Command(plugin, ["CMD", "DEF"], ?OPTIONS={})
+function! enabler#Command(plugin, cmddef, ...) "{{{3
+    let options = a:0 >= 1 ? a:1 : {}
+    let cdef = type(a:cmddef) == 3 ? a:cmddef : split(a:1, '\s\+')
+    let sdef = type(a:cmddef) == 3 ? join(a:cmddef) : a:cmddef
+    let ndef = len(cdef)
+    let cmd = cdef[-1]
     let rangetype = get(options, 'rangetype', '')
-    if rangetype == 'range' || (empty(rangetype) && sargs =~ '\s-range[[:space:]=]')
+    if empty(rangetype) ? sdef =~ '\s-range[[:space:]=]' : rangetype == 'range'
         let range = '["<line1>", "<line2>"]'
+    elseif empty(rangetype) ? sdef =~ '\s-count[[:space:]=]' : rangetype == 'count'
+        let range = '["<count>"]'
     elseif rangetype == 'rangecount'
         let range = '[".", "+<count>"]'
-    elseif rangetype == 'count' || (empty(rangetype) && sargs =~ '\s-count[[:space:]=]')
-        let range = '["<count>"]'
     else
         let range = '[]'
     end
-    exec printf('command! -nargs=* -bang %s %s call s:Command(%s, %s, "<bang>", %s, <q-args>)',
-                \ sargs, cmd,
-                \ string(cmd),
-                \ string(plugins),
-                \ range
-                \ )
-    call s:AddUndefine(plugins, 'delcommand '. cmd)
+    try
+        exec printf('command! -nargs=* -bang %s call s:Command(%s, %s, "<bang>", %s, <q-args>)',
+                    \ sdef,
+                    \ string(cmd),
+                    \ string(a:plugin),
+                    \ range
+                    \ )
+        call s:AddUndefine([a:plugin], 'delcommand '. cmd)
+    catch
+        echohl Error
+        echom "Enabler: Error when defining stub command:" sdef
+        echom v:exception
+        echohl NONE
+    endtry
 endf
 
 
@@ -314,18 +286,18 @@ function! s:Command(cmd, plugins, bang, range, args) "{{{3
 endf
 
 
-" Define a dummy map that will load PLUGINS upon first invocation.
+" Define a dummy map that will load PLUGIN upon first invocation.
 " Examples:
-"   call enabler#Map('<silent> <f2> :TMarks<cr>', ['tmarks_vim'])
-function! enabler#Map(args, plugins) "{{{3
-    " echom "DBG enabler#Map" string(a:args) string(a:plugins)
+"   call enabler#Map('tmarks_vim', '<silent> <f2> :TMarks<cr>')
+function! enabler#Map(plugin, args) "{{{3
+    " echom "DBG enabler#Map" string(a:args) a:plugin
     let mcmd = 'map'
     let args = []
     let lhs = ''
     let rhs = ''
     let mode = 'cmd'
     let idx = 0
-    let margs = split(a:args, ' \+')
+    let margs = type(a:args) == 3 ? a:args : split(a:args, ' \+')
     let nargs = len(margs)
     while idx < nargs
         let item = margs[idx]
@@ -354,18 +326,18 @@ function! enabler#Map(args, plugins) "{{{3
     endwh
     let sargs = join(args)
     let unmap = substitute(mcmd, '\(nore\)\?\zemap$', 'un', '')
-    call s:AddUndefine(a:plugins, unmap .' '. lhs)
+    call s:AddUndefine([a:plugin], unmap .' '. lhs)
     if empty(rhs)
         let rhs1 = rhs
     else
         let undef = printf('%s %s %s %s', mcmd, sargs, lhs, rhs)
-        call s:AddUndefine(a:plugins, undef)
+        call s:AddUndefine([a:plugin], undef)
         let rhs1 = substitute(rhs, '<', '<lt>', 'g')
     endif
     let lhs1 = substitute(lhs, '<', '<lt>', 'g')
     let [pre, post] = s:GetMapPrePost(mcmd)
     let cmd = printf('%s:call <SID>ReMap(%s, %s, %s, %s, %s)<cr>%s',
-                \ pre, string(mcmd), string(sargs), string(lhs1), string(a:plugins), string(rhs1), post)
+                \ pre, string(mcmd), string(sargs), string(lhs1), string(a:plugin), string(rhs1), post)
     let map = [mcmd, sargs, lhs, cmd]
     exec join(map)
 endf
@@ -396,12 +368,12 @@ function! s:GetMapPrePost(map) "{{{3
 endf
 
 
-function! s:ReMap(mcmd, args, lhs, plugins, rhs) "{{{3
-    " TLogVAR a:mcmd, a:args, a:lhs, a:plugins, a:rhs
+function! s:ReMap(mcmd, args, lhs, plugin, rhs) "{{{3
+    " TLogVAR a:mcmd, a:args, a:lhs, a:plugin, a:rhs
     " let unmap = substitute(a:mcmd, '\(nore\)\?\zemap$', 'un', '')
     " " TLogVAR unmap, a:lhs
     " exec unmap a:lhs
-    call enabler#Plugin(a:plugins)
+    call enabler#Plugin([a:plugin])
     if !empty(a:rhs)
         exec a:mcmd a:args a:lhs a:rhs
     endif
