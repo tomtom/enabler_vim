@@ -1,11 +1,11 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    375
+" @Revision:    378
 
 
 if !exists('g:enabler#dirs')
     " A list of directories where plugins are stored.
-    let g:enabler#dirs = split(globpath(&rtp, '/bundle'), '\n')   "{{{2
+    let g:enabler#dirs = split(globpath(&rtp, 'bundle'), '\n')   "{{{2
 endif
 
 
@@ -239,7 +239,7 @@ function! enabler#Command(plugin, cmddef, ...) "{{{3
         let range = '[]'
     end
     try
-        exec printf('command! -nargs=* -bang %s call s:Command(%s, %s, "<bang>", %s, <q-args>)',
+        exec printf('command! -nargs=* -bang %s call s:EnableCommand(%s, %s, "<bang>", %s, <q-args>)',
                     \ sdef,
                     \ string(cmd),
                     \ string(a:plugin),
@@ -255,9 +255,9 @@ function! enabler#Command(plugin, cmddef, ...) "{{{3
 endf
 
 
-function! s:Command(cmd, plugins, bang, range, args) "{{{3
+function! s:EnableCommand(cmd, plugin, bang, range, args) "{{{3
     " exec 'delcommand' a:cmd
-    call enabler#Plugin(a:plugins)
+    call enabler#Plugin([a:plugin])
     let range = join(filter(copy(a:range), '!empty(v:val)'), ',')
     if exists(':'. a:cmd) == 2
         try
