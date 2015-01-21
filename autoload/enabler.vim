@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    379
+" @Revision:    393
 
 
 if !exists('g:enabler#dirs')
@@ -72,7 +72,7 @@ endf
 "   call enabler#Dependency('vikitasks_vim', ['viki_vim'])
 function! enabler#Dependency(plugin, dependencies) "{{{3
     let s:dependencies[a:plugin] = get(a:dependencies, a:plugin, []) + a:dependencies
-    call s:AddUndefine([a:plugin], printf('call s:Remove(s:dependencies, %s)', string(a:plugin)))
+    call s:AddUndefine(a:plugin, printf('call s:Remove(s:dependencies, %s)', string(a:plugin)))
 endf
 
 
@@ -172,6 +172,22 @@ function! s:Remove(dict, key) "{{{3
 endf
 
 
+function! s:UndefFtplugins(dict, key, ftplugin) "{{{3
+    if has_key(a:dict, a:key)
+        let ftps = a:dict[a:key]
+        let i = index(ftps, a:ftplugin)
+        if i >= 0
+            call remove(ftps, i)
+        endif
+        if empty(ftps)
+            call remove(a:dict, a:key)
+        else
+            let a:dict[a:key] = ftps
+        endif
+    endif
+endf
+
+
 let s:loaded_config = {}
 
 function! s:LoadConfig(name) "{{{3
@@ -189,23 +205,23 @@ function! s:LoadConfig(name) "{{{3
 endf
 
 
-function! s:AddUndefine(plugins, undef) "{{{3
-    for plugin in a:plugins
-        if empty(plugin)
-            echoerr string(a:plugins) a:undef
-        endif
-        if !has_key(s:undefine, plugin)
-            let s:undefine[plugin] = [a:undef]
-        else
-            call add(s:undefine[plugin], a:undef)
-        endif
-    endfor
+function! s:AddUndefine(plugin, undef) "{{{3
+    if empty(a:plugin)
+        echoerr string(a:plugins) a:undef
+    endif
+    if !has_key(s:undefine, a:plugin)
+        let s:undefine[a:plugin] = [a:undef]
+    else
+        call add(s:undefine[a:plugin], a:undef)
+    endif
 endf
 
 
 function! enabler#Autoload(rx, ...) "{{{3
     let s:autoloads[a:rx] = get(s:autoloads, a:rx, []) + a:000
-    call s:AddUndefine(a:000, printf('call s:Remove(s:autoloads, %s)', string(a:rx)))
+    for a in a:000
+        call s:AddUndefine(a, printf('call s:Remove(s:autoloads, %s)', string(a:rx)))
+    endfor
 endf
 
 
@@ -217,7 +233,9 @@ function! enabler#Ftplugin(ft, ...) "{{{3
         let ps = a:000
     endif
     let s:ftplugins[a:ft] = get(s:ftplugins, a:ft, []) + ps
-    call s:AddUndefine(ps, printf('call s:Remove(s:ftplugins, %s)', string(a:ft)))
+    for p in ps
+        call s:AddUndefine(p, printf('call s:UndefFtplugins(s:ftplugins, %s, %s)', string(a:ft), string(p)))
+    endfor
 endf
 
 
@@ -245,7 +263,7 @@ function! enabler#Command(plugin, cmddef, ...) "{{{3
                     \ string(a:plugin),
                     \ range
                     \ )
-        call s:AddUndefine([a:plugin], 'delcommand '. cmd)
+        call s:AddUndefine(a:plugin, 'delcommand '. cmd)
     catch
         echohl Error
         echom "Enabler: Error when defining stub command:" sdef
@@ -321,12 +339,12 @@ function! enabler#Map(plugin, args) "{{{3
     endwh
     let sargs = join(args)
     let unmap = substitute(mcmd, '\(nore\)\?\zemap$', 'un', '')
-    call s:AddUndefine([a:plugin], unmap .' '. lhs)
+    call s:AddUndefine(a:plugin, unmap .' '. lhs)
     if empty(rhs)
         let rhs1 = rhs
     else
         let undef = printf('%s %s %s %s', mcmd, sargs, lhs, rhs)
-        call s:AddUndefine([a:plugin], undef)
+        call s:AddUndefine(a:plugin, undef)
         let rhs1 = substitute(rhs, '<', '<lt>', 'g')
     endif
     let lhs1 = substitute(lhs, '<', '<lt>', 'g')

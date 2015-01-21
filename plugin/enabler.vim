@@ -97,7 +97,12 @@ augroup END
 
 
 if !empty(g:enabler_autofile) && filereadable(g:enabler_autofile)
-    exec 'source' fnameescape(g:enabler_autofile)
+    try
+        exec 'source' fnameescape(g:enabler_autofile)
+    catch
+        echom "Error when loading" g:enabler_autofile
+        echom v:exception
+    endtry
 endif
 
 
