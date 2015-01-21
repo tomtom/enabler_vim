@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    224
+" @Revision:    226
 
 
 if !exists('g:enabler#auto#dirs')
@@ -9,10 +9,19 @@ endif
 
 
 if !exists('g:enabler#auto#kinds')
-    " d ... filetype detection/plugins
-    " c ... commands
-    " f ... functions, autoloads
-    " m ... maps
+    " Define for what |enabler#auto#Generate()| generates stubs.
+    " A dictionary with the following keys:
+    "
+    "   ftplugins (BOOLEAN) ... scan for ftplugins, syntax definitions, 
+    "                           ftdetect files etc.
+    "   plugin (see below) .... scan the "plugin" subdirectory
+    "   autoload (see below) .. scan the "autoload" subdirectory
+    "
+    " Possible values for "plugin" & "autoload":
+    "   d ... filetype detection/plugins
+    "   c ... commands
+    "   f ... functions, autoloads
+    "   m ... maps
     let g:enabler#auto#kinds = {'ftplugins': 1, 'plugin': 'cf', 'autoload': 'f'}   "{{{2
 endif
 

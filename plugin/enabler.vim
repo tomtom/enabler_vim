@@ -1,7 +1,7 @@
 " @Author:      Tom Link (micathom AT gmail com?subject=[vim])
 " @GIT:         http://github.com/tomtom/enabler_vim/
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    85
+" @Revision:    88
 " GetLatestVimScripts: 0 0 :AutoInstall: enabler.vim
 " Enable plugins
 
@@ -20,7 +20,7 @@ if !exists('g:enabler_autofile')
 endif
 
 
-" :display: :Enableplugin[!] PLUGINS ...
+" :display: :Enable[!] PLUGINS ...
 " Enable one or more plugin. This will add the respective path to 
 " 'runtimepath' and load the plugin file.
 "
@@ -83,6 +83,9 @@ command! -nargs=+ -complete=custom,enabler#Complete Enablemap let s:tmp = [<f-ar
 command! -bar Enableupdate call enabler#Update()
 
 
+" Generate stub commands for all parseable plugins/bundles in 
+" |g:enabler#auto#dirs| and save to |g:enabler_autofile|.
+" See also |enabler#auto#Generate()|.
 command! -nargs=* -complete=file Enablegenerate call enabler#auto#Generate(<f-args>)
 
 

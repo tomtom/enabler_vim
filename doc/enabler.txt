@@ -46,7 +46,7 @@ If it is installed in ~/.vim: >
 Contents~
 
         g:enabler_autofile .......... |g:enabler_autofile|
-        :Enableplugin ............... |:Enableplugin|
+        :Enable ..................... |:Enable|
         :Enableautoload ............. |:Enableautoload|
         :Enablefiletype ............. |:Enablefiletype|
         :Enablecommand .............. |:Enablecommand|
@@ -82,8 +82,8 @@ plugin/enabler.vim~
 g:enabler_autofile             (default: '')
     If non-empty, load this file with enabler definitions on startup.
 
-                                                    *:Enableplugin*
-:Enableplugin[!] PLUGINS ...
+                                                    *:Enable*
+:Enable[!] PLUGINS ...
     Enable one or more plugin. This will add the respective path to 
     'runtimepath' and load the plugin file.
 
@@ -97,8 +97,8 @@ g:enabler_autofile             (default: '')
     before loading the plugin. See also |g:enabler#config_dir|.
 
     Example:
-      :Enableplugin! tlib_vim
-      :Enableplugin tcomment_vim checksyntax_vim
+      :Enable! tlib_vim
+      :Enable tcomment_vim checksyntax_vim
 
                                                     *:Enableautoload*
 :Enableautoload[!] REGEXP PLUGINS ...
@@ -147,6 +147,9 @@ g:enabler_autofile             (default: '')
 
                                                     *:Enablegenerate*
 :Enablegenerate
+    Generate stub commands for all parseable plugins/bundles in 
+    |g:enabler#auto#dirs| and save to |g:enabler_autofile|.
+    See also |enabler#auto#Generate()|.
 
 
 ========================================================================
@@ -157,10 +160,19 @@ g:enabler#auto#dirs            (default: g:enabler#dirs)
 
                                                     *g:enabler#auto#kinds*
 g:enabler#auto#kinds           (default: {'ftplugins': 1, 'plugin': 'cf', 'autoload': 'f'})
-    d ... filetype detection/plugins
-    c ... commands
-    f ... functions, autoloads
-    m ... maps
+    Define for what |enabler#auto#Generate()| generates stubs.
+    A dictionary with the following keys:
+
+      ftplugins (BOOLEAN) ... scan for ftplugins, syntax definitions, 
+                              ftdetect files etc.
+      plugin (see below) .... scan the "plugin" subdirectory
+      autoload (see below) .. scan the "autoload" subdirectory
+
+    Possible values for "plugin" & "autoload":
+      d ... filetype detection/plugins
+      c ... commands
+      f ... functions, autoloads
+      m ... maps
 
                                                     *enabler#auto#Generate()*
 enabler#auto#Generate(?tagfiles=[GUESS])
@@ -177,7 +189,7 @@ enabler#auto#Generate(?tagfiles=[GUESS])
 autoload/enabler.vim~
 
                                                     *g:enabler#dirs*
-g:enabler#dirs                 (default: split(globpath(&rtp, '/bundle'), '\n'))
+g:enabler#dirs                 (default: split(globpath(&rtp, 'bundle'), '\n'))
     A list of directories where plugins are stored.
 
                                                     *g:enabler#exclude_rx*
