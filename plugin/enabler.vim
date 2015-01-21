@@ -34,9 +34,9 @@ endif
 " before loading the plugin. See also |g:enabler#config_dir|.
 "
 " Example:
-"   :Enableplugin! tlib_vim
-"   :Enableplugin tcomment_vim checksyntax_vim
-command! -bang -bar -nargs=+ -complete=custom,enabler#Complete Enableplugin call enabler#Plugin([<f-args>], !empty("<bang>"))
+"   :Enable! tlib_vim
+"   :Enable tcomment_vim checksyntax_vim
+command! -bang -bar -nargs=+ -complete=custom,enabler#Complete Enable call enabler#Plugin([<f-args>], !empty("<bang>"))
 
 " :display: :Enableautoload[!] REGEXP PLUGINS ...
 " When an autoload function with a prefix matching REGEXP is loaded but 
