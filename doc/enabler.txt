@@ -25,13 +25,16 @@ managers available, shell scripts or whatever.
 -----------------------------------------------------------------------
 Install~
 
-In order to install the vba, open the vba file in VIM and type: >
+If you want to install the vba from vim.org, open the vba file in VIM (see 
+`:help vimball` for details) and type: >
 
     :so %
 
-See :help vimball for details.
+If you want to install from git, clone http://github.com/tomtom/enabler_vim/
+to ~/.vim/bundle/enabler_vim: >
 
-Also available via git: http://github.com/tomtom/enabler_vim/
+    cd ~/.vim/bundle
+    git clone https://github.com/tomtom/enabler_vim.git
 
 In order to make full use of the enabler plugin, you could insert something 
 like the the following lines at the top of the |vimrc| file:
@@ -42,13 +45,17 @@ like the the following lines at the top of the |vimrc| file:
     """ If enabler is installed in ~/.vim replace the above line with the 
     """ following:
     " runtime! plugin/enabler.vim
-    """ Optionally set plugin specific options
+
+    """ Optionally customize enabler's behaviour:
     " let g:enabler... = ...
-    """ Load the plugin
+
+    """ Load the plugin:
     runtime! plugin/enabler.vim
-    """ Enable a standard set of plugins you always use
+
+    """ Enable a standard set of plugins you always use:
     Enable ...
-    """ Optionally load |autoenabler.vim|
+
+    """ Optionally load |autoenabler.vim|:
     Autoenabler
 
 
