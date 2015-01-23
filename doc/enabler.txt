@@ -28,19 +28,24 @@ See :help vimball for details.
 
 Also available via git: http://github.com/tomtom/enabler_vim/
 
-You probably have to insert the following lines at the top of the |vimrc| file:
+In order to make full use of the enabler plugin, you could insert something 
+like the the following lines at the top of the |vimrc| file:
 
-If the enabler plugin is installed as a bundle: >
-
-    " Add the directory of the enabler bundle to 'rtp' (the value may differ 
-    " from your setup)
+    """ If enabler is installed as bundle, add the directory of the enabler 
+    """ bundle to 'rtp' (the value may differ from your setup):
     set rtp+=$HOME/.vim/bundle/enabler_vim
-    " Load the plugin
+    """ If enabler is installed in ~/.vim replace the above line with the 
+    """ following:
+    " runtime! plugin/enabler.vim
+    """ Optionally set plugin specific options
+    " let g:enabler... = ...
+    """ Load the plugin
     runtime! plugin/enabler.vim
+    """ Enable a standard set of plugins you always use
+    Enable ...
+    """ Optionally load |autoenabler.vim|
+    Autoenabler
 
-If it is installed in ~/.vim: >
-
-    runtime! plugin/enabler.vim
 
 ========================================================================
 Contents~
@@ -53,6 +58,7 @@ Contents~
         :Enablemap .................. |:Enablemap|
         :Enableupdate ............... |:Enableupdate|
         :Enablegenerate ............. |:Enablegenerate|
+        :Autoenabler ................ |:Autoenabler|
         g:enabler#auto#dirs ......... |g:enabler#auto#dirs|
         g:enabler#auto#kinds ........ |g:enabler#auto#kinds|
         enabler#auto#Generate ....... |enabler#auto#Generate()|
@@ -61,25 +67,21 @@ Contents~
         g:enabler#exclude_dirs ...... |g:enabler#exclude_dirs|
         g:enabler#rtp_pos ........... |g:enabler#rtp_pos|
         g:enabler#config_dir ........ |g:enabler#config_dir|
-        g:enabler#debug ............. |g:enabler#debug|
-        enabler#Update .............. |enabler#Update()|
         enabler#Dependency .......... |enabler#Dependency()|
         enabler#Onload .............. |enabler#Onload()|
-        enabler#Complete ............ |enabler#Complete()|
         enabler#Plugin .............. |enabler#Plugin()|
         enabler#Autoload ............ |enabler#Autoload()|
         enabler#Ftplugin ............ |enabler#Ftplugin()|
         enabler#Command ............. |enabler#Command()|
         enabler#Map ................. |enabler#Map()|
-        enabler#FuncUndefined ....... |enabler#FuncUndefined()|
-        enabler#AutoFiletype ........ |enabler#AutoFiletype()|
 
 
 ========================================================================
 plugin/enabler.vim~
 
                                                     *g:enabler_autofile*
-g:enabler_autofile             (default: '')
+g:enabler_autofile             (default: split(&rtp, ',')[0] .'/autoenabler.vim')
+                                                    *autoenabler.vim*
     If non-empty, load this file with enabler definitions on startup.
 
                                                     *:Enable*
@@ -151,6 +153,10 @@ g:enabler_autofile             (default: '')
     |g:enabler#auto#dirs| and save to |g:enabler_autofile|.
     See also |enabler#auto#Generate()|.
 
+                                                    *:Autoenabler*
+:Autoenabler
+    Load |g:enabler_autofile|.
+
 
 ========================================================================
 autoload/enabler/auto.vim~
@@ -215,12 +221,6 @@ g:enabler#config_dir           (default: '')
     Configuration files will (normally) be loaded only once. They are 
     meant to help users to keep their |vimrc| file small.
 
-                                                    *g:enabler#debug*
-g:enabler#debug                (default: 0)
-
-                                                    *enabler#Update()*
-enabler#Update()
-
                                                     *enabler#Dependency()*
 enabler#Dependency(plugin, dependencies)
     Define a list of dependencies for a plugin.
@@ -230,10 +230,7 @@ enabler#Dependency(plugin, dependencies)
 
                                                     *enabler#Onload()*
 enabler#Onload(plugin, exec)
-    Execute a vim command after enabling a plugin.
-
-                                                    *enabler#Complete()*
-enabler#Complete(lead, line, col)
+    Define a vim command to be executed after enabling a plugin.
 
                                                     *enabler#Plugin()*
 enabler#Plugin(plugins, ?load_now=0, ?[subdir_rxs])
@@ -253,12 +250,6 @@ enabler#Map(plugin, args)
     Define a dummy map that will load PLUGIN upon first invocation.
     Examples:
       call enabler#Map('tmarks_vim', '<silent> <f2> :TMarks<cr>')
-
-                                                    *enabler#FuncUndefined()*
-enabler#FuncUndefined(fn)
-
-                                                    *enabler#AutoFiletype()*
-enabler#AutoFiletype(ft)
 
 
 

@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    393
+" @Revision:    412
 
 
 if !exists('g:enabler#dirs')
@@ -41,6 +41,7 @@ endif
 
 
 if !exists('g:enabler#debug')
+    " :nodoc:
     let g:enabler#debug = 0   "{{{2
 endif
 
@@ -54,6 +55,7 @@ let s:onload = {}
 let s:loaded = {}
 
 
+" :nodoc:
 function! enabler#Update() "{{{3
     let items = split(globpath(join(g:enabler#dirs, ','), '*'), '\n')
     let items = filter(items, 'isdirectory(v:val)')
@@ -77,7 +79,7 @@ function! enabler#Dependency(plugin, dependencies) "{{{3
 endf
 
 
-" Execute a vim command after enabling a plugin.
+" Define a vim command to be executed after enabling a plugin.
 function! enabler#Onload(plugin, exec) "{{{3
     if has_key(s:onload, a:plugin)
         call add(s:onload[a:plugin], a:exec)
@@ -95,6 +97,7 @@ function! s:Dirs() "{{{3
 endf
 
 
+" :nodoc:
 function! enabler#Complete(lead, line, col) "{{{3
     return join(keys(s:Dirs()), "\n")
 endf
@@ -419,6 +422,7 @@ function! s:EnableMap(mcmd, args, lhs, plugin, rhs) "{{{3
 endf
 
 
+" :nodoc:
 function! enabler#FuncUndefined(fn) "{{{3
     let autoloads = filter(copy(s:autoloads), 'a:fn =~ v:key')
     let plugins = []
@@ -429,6 +433,7 @@ function! enabler#FuncUndefined(fn) "{{{3
 endf
 
 
+" :nodoc:
 function! enabler#AutoFiletype(ft) "{{{3
     call s:LoadConfig('ft/'. a:ft .'.vim')
     let ftplugins = get(s:ftplugins, a:ft, [])

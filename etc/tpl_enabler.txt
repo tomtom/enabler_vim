@@ -28,18 +28,23 @@ See :help vimball for details.
 
 Also available via git: http://github.com/tomtom/enabler_vim/
 
-You probably have to insert the following lines at the top of the |vimrc| file:
+In order to make full use of the enabler plugin, you could insert something 
+like the the following lines at the top of the |vimrc| file:
 
-If the enabler plugin is installed as a bundle: >
-
-    " Add the directory of the enabler bundle to 'rtp' (the value may differ 
-    " from your setup)
+    """ If enabler is installed as bundle, add the directory of the enabler 
+    """ bundle to 'rtp' (the value may differ from your setup):
     set rtp+=$HOME/.vim/bundle/enabler_vim
-    " Load the plugin
+    """ If enabler is installed in ~/.vim replace the above line with the 
+    """ following:
+    " runtime! plugin/enabler.vim
+    """ Optionally set plugin specific options
+    " let g:enabler... = ...
+    """ Load the plugin
     runtime! plugin/enabler.vim
+    """ Enable a standard set of plugins you always use
+    Enable ...
+    """ Optionally load |autoenabler.vim|
+    Autoenabler
 
-If it is installed in ~/.vim: >
-
-    runtime! plugin/enabler.vim
 
 %s
