@@ -15,8 +15,9 @@ set cpo&vim
 
 
 if !exists('g:enabler_autofile')
+    "                                                 *autoenabler.vim*
     " If non-empty, load this file with enabler definitions on startup.
-    let g:enabler_autofile = ''   "{{{2
+    let g:enabler_autofile = split(&rtp, ',')[0] .'/autoenabler.vim'   "{{{2
 endif
 
 
