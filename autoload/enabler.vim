@@ -365,7 +365,7 @@ function! enabler#Map(plugin, args) "{{{3
     endif
     let lhs1 = substitute(lhs, '<', '<lt>', 'g')
     let [pre, post] = s:GetMapPrePost(mcmd)
-    let cmd = printf('%s:call <SID>ReMap(%s, %s, %s, %s, %s)<cr>%s',
+    let cmd = printf('%s:call <SID>EnableMap(%s, %s, %s, %s, %s)<cr>%s',
                 \ pre, string(mcmd), string(sargs), string(lhs1), string(a:plugin), string(rhs1), post)
     let map = [mcmd, sargs, lhs, cmd]
     exec join(map)
@@ -397,7 +397,7 @@ function! s:GetMapPrePost(map) "{{{3
 endf
 
 
-function! s:ReMap(mcmd, args, lhs, plugin, rhs) "{{{3
+function! s:EnableMap(mcmd, args, lhs, plugin, rhs) "{{{3
     " TLogVAR a:mcmd, a:args, a:lhs, a:plugin, a:rhs
     " let unmap = substitute(a:mcmd, '\(nore\)\?\zemap$', 'un', '')
     " " TLogVAR unmap, a:lhs
