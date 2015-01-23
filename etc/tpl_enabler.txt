@@ -8,6 +8,7 @@ enable bundles when:
 
     - explicitely loading some bundles via |:Enableplugin|
     - setting a filetype (see |:Enablefiletype|)
+    - editing a file matching a |regexp| (see |:Enablefilepattern|)
     - calling an unknown function (see |:Enableautoload|)
     - invoking a map (see |:Enablemap|)
     - calling a command (see |:Enablecommand|)
