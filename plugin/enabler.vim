@@ -1,7 +1,7 @@
 " @Author:      Tom Link (micathom AT gmail com?subject=[vim])
 " @GIT:         http://github.com/tomtom/enabler_vim/
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    88
+" @Revision:    93
 " GetLatestVimScripts: 0 0 :AutoInstall: enabler.vim
 " Enable plugins
 
@@ -90,21 +90,15 @@ command! -bar Enableupdate call enabler#Update()
 command! -nargs=* -complete=file Enablegenerate call enabler#auto#Generate(<f-args>)
 
 
+" Load |g:enabler_autofile|.
+command! Autoenabler exec 'source' fnameescape(g:enabler_autofile)
+
+
 augroup Enabler
     autocmd!
     autocmd FuncUndefined * call enabler#FuncUndefined(expand("<afile>"))
     autocmd FileType * call enabler#AutoFiletype(expand("<amatch>"))
 augroup END
-
-
-if !empty(g:enabler_autofile) && filereadable(g:enabler_autofile)
-    try
-        exec 'source' fnameescape(g:enabler_autofile)
-    catch
-        echom "Error when loading" g:enabler_autofile
-        echom v:exception
-    endtry
-endif
 
 
 let &cpo = s:save_cpo
