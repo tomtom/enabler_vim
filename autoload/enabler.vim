@@ -176,7 +176,7 @@ function! s:Remove(dict, key) "{{{3
 endf
 
 
-function! s:UndefFtplugins(dict, key, ftplugin) "{{{3
+function! s:RemovePlugin(dict, key, ftplugin) "{{{3
     if has_key(a:dict, a:key)
         let ftps = a:dict[a:key]
         let i = index(ftps, a:ftplugin)
