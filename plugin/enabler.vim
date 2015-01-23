@@ -1,7 +1,7 @@
 " @Author:      Tom Link (micathom AT gmail com?subject=[vim])
 " @GIT:         http://github.com/tomtom/enabler_vim/
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    93
+" @Revision:    96
 " GetLatestVimScripts: 0 0 :AutoInstall: enabler.vim
 " Enable plugins
 
@@ -47,6 +47,9 @@ command! -bang -bar -nargs=+ -complete=custom,enabler#Complete Enable call enabl
 "   :Enableautoload ^enable# enabler_vim
 command! -bar -nargs=+ -complete=custom,enabler#Complete Enableautoload call enabler#Autoload(<f-args>)
 
+" :display: :Enablefilepattern REGEXP PLUGINS...
+command! -nargs=+ -complete=custom,enabler#Complete Enablefilepattern call enabler#Filepattern(<f-args>)
+
 " :display: :Enablefiletype[!] FILETYPE PLUGINS ...
 " When 'filetype' is set, load PLUGINS.
 "
@@ -83,12 +86,10 @@ command! -nargs=+ -complete=custom,enabler#Complete Enablemap let s:tmp = [<f-ar
 " plugin while VIM is running.
 command! -bar Enableupdate call enabler#Update()
 
-
 " Generate stub commands for all parseable plugins/bundles in 
 " |g:enabler#auto#dirs| and save to |g:enabler_autofile|.
 " See also |enabler#auto#Generate()|.
 command! -nargs=* -complete=file Enablegenerate call enabler#auto#Generate(<f-args>)
-
 
 " Load |g:enabler_autofile|.
 command! Autoenabler exec 'source' fnameescape(g:enabler_autofile)
@@ -98,6 +99,7 @@ augroup Enabler
     autocmd!
     autocmd FuncUndefined * call enabler#FuncUndefined(expand("<afile>"))
     autocmd FileType * call enabler#AutoFiletype(expand("<amatch>"))
+    autocmd BufReadPre,BufNew * call enabler#Filetypepatterns(expand("<afile>"))
 augroup END
 
 

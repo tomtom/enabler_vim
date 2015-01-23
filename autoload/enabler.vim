@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    412
+" @Revision:    420
 
 
 if !exists('g:enabler#dirs')
@@ -53,6 +53,7 @@ let s:dependencies = {}
 let s:undefine = {}
 let s:onload = {}
 let s:loaded = {}
+let s:filepatterns = {}
 
 
 " :nodoc:
@@ -448,5 +449,23 @@ function! enabler#AutoFiletype(ft) "{{{3
                     \ '[\/]syntax[\/]'. a:ft .'_[^\/]\{-}\.vim$',
                     \ ])
     endif
+endf
+
+
+function! enabler#Filepattern(rx, ...) "{{{3
+    let s:filepatterns[a:rx] = get(s:filepatterns, a:rx, []) + a:000
+    for p in a:000
+        call s:AddUndefine(p, printf('call s:RemovePlugin(s:filepatterns, %s, %s)', string(a:rx), string(p)))
+    endfor
+endf
+
+
+function! enabler#Filetypepatterns(filename) "{{{3
+    for rx in keys(s:filepatterns)
+        if a:filename =~ rx
+            let ps = s:filepatterns[rx]
+            call enabler#Plugin(ps)
+        endif
+    endfor
 endf
 
