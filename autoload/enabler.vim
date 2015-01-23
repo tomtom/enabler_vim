@@ -51,6 +51,7 @@ let s:ftplugins = {}
 let s:dependencies = {}
 let s:undefine = {}
 let s:onload = {}
+let s:loaded = {}
 
 
 function! enabler#Update() "{{{3
@@ -114,7 +115,10 @@ function! enabler#Plugin(plugins, ...) "{{{3
     for pname in a:plugins
         if !has_key(dirs, pname)
             echoerr "Enabler: Unknown plugin:" pname
+        elseif has_key(s:loaded, pname)
+            continue
         else
+            let s:loaded[pname] = 1
             if has_key(s:dependencies, pname)
                 call enabler#Plugin(s:dependencies[a:plugin], load_now)
             endif
@@ -218,10 +222,13 @@ endf
 
 
 function! enabler#Autoload(rx, ...) "{{{3
-    let s:autoloads[a:rx] = get(s:autoloads, a:rx, []) + a:000
-    for a in a:000
-        call s:AddUndefine(a, printf('call s:Remove(s:autoloads, %s)', string(a:rx)))
-    endfor
+    let ps = filter(copy(a:000), '!has_key(s:loaded, v:val)')
+    if !empty(ps)
+        let s:autoloads[a:rx] = get(s:autoloads, a:rx, []) + ps
+        for p in ps
+            call s:AddUndefine(p, printf('call s:RemovePlugin(s:autoloads, %s, %s)', string(a:rx), string(p)))
+        endfor
+    endif
 endf
 
 
@@ -232,15 +239,21 @@ function! enabler#Ftplugin(ft, ...) "{{{3
     else
         let ps = a:000
     endif
-    let s:ftplugins[a:ft] = get(s:ftplugins, a:ft, []) + ps
-    for p in ps
-        call s:AddUndefine(p, printf('call s:UndefFtplugins(s:ftplugins, %s, %s)', string(a:ft), string(p)))
-    endfor
+    let ps = filter(copy(ps), '!has_key(s:loaded, v:val)')
+    if !empty(ps)
+        let s:ftplugins[a:ft] = get(s:ftplugins, a:ft, []) + ps
+        for p in ps
+            call s:AddUndefine(p, printf('call s:RemovePlugin(s:ftplugins, %s, %s)', string(a:ft), string(p)))
+        endfor
+    endif
 endf
 
 
 " :display: enabler#Command(plugin, "CMD DEF", ?OPTIONS={}) or enabler#Command(plugin, ["CMD", "DEF"], ?OPTIONS={})
 function! enabler#Command(plugin, cmddef, ...) "{{{3
+    if has_key(s:loaded, a:plugin)
+        return
+    endif
     let options = a:0 >= 1 ? a:1 : {}
     let cdef = type(a:cmddef) == 3 ? a:cmddef : split(a:1, '\s\+')
     let sdef = type(a:cmddef) == 3 ? join(a:cmddef) : a:cmddef
@@ -304,6 +317,9 @@ endf
 "   call enabler#Map('tmarks_vim', '<silent> <f2> :TMarks<cr>')
 function! enabler#Map(plugin, args) "{{{3
     " echom "DBG enabler#Map" string(a:args) a:plugin
+    if has_key(s:loaded, a:plugin)
+        return
+    endif
     let mcmd = 'map'
     let args = []
     let lhs = ''
