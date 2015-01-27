@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    420
+" @Revision:    432
 
 
 if !exists('g:enabler#dirs')
@@ -62,11 +62,16 @@ function! enabler#Update() "{{{3
     let items = filter(items, 'isdirectory(v:val)')
     let s:dirs = {}
     for dname in items
-        let pname = fnamemodify(dname, ':t')
-        if pname !~ g:enabler#exclude_rx && index(g:enabler#exclude_dirs, pname) == -1
-            let s:dirs[pname] = dname
+        let plugin = fnamemodify(dname, ':t')
+        if plugin !~ g:enabler#exclude_rx && index(g:enabler#exclude_dirs, plugin) == -1
+            let s:dirs[plugin] = dname
         endif
     endfor
+endf
+
+
+function! s:IsLoaded(plugin) "{{{3
+    return has_key(s:loaded, a:plugin)
 endf
 
 
@@ -75,8 +80,10 @@ endf
 " Examples:
 "   call enabler#Dependency('vikitasks_vim', ['viki_vim'])
 function! enabler#Dependency(plugin, dependencies) "{{{3
-    let s:dependencies[a:plugin] = get(a:dependencies, a:plugin, []) + a:dependencies
-    call s:AddUndefine(a:plugin, printf('call s:Remove(s:dependencies, %s)', string(a:plugin)))
+    if !s:IsLoaded(a:plugin)
+        let s:dependencies[a:plugin] = get(s:dependencies, a:plugin, []) + a:dependencies
+        call s:AddUndefine(a:plugin, printf('call s:Remove(s:dependencies, %s)', string(a:plugin)))
+    endif
 endf
 
 
@@ -116,30 +123,30 @@ function! enabler#Plugin(plugins, ...) "{{{3
     let dirs = s:Dirs()
     let rtp = split(&rtp, ',')
     let files = []
-    for pname in a:plugins
-        if !has_key(dirs, pname)
-            echoerr "Enabler: Unknown plugin:" pname
-        elseif has_key(s:loaded, pname)
+    for plugin in a:plugins
+        if !has_key(dirs, plugin)
+            echoerr "Enabler: Unknown plugin:" plugin
+        elseif s:IsLoaded(plugin)
             continue
         else
-            let s:loaded[pname] = 1
-            if has_key(s:dependencies, pname)
-                call enabler#Plugin(s:dependencies[a:plugin], load_now)
+            let s:loaded[plugin] = 1
+            if has_key(s:dependencies, plugin)
+                let rtp = enabler#Plugin(s:dependencies[plugin], load_now)
             endif
-            let dir = dirs[pname]
+            let dir = dirs[plugin]
             let ndir = len(dir) + len('/')
             if index(rtp, dir) == -1
                 let rtp = insert(rtp, dir, s:rtp_pos)
                 let s:rtp_pos += 1
-                if has_key(s:undefine, pname)
-                    for undef in s:undefine[pname]
+                if has_key(s:undefine, plugin)
+                    for undef in s:undefine[plugin]
                         if g:enabler#debug
                             exec undef
                         else
                             silent! exec undef
                         endif
                     endfor
-                    call remove(s:undefine, pname)
+                    call remove(s:undefine, plugin)
                 endif
                 let adir = dir .'/after'
                 if isdirectory(adir)
@@ -153,7 +160,7 @@ function! enabler#Plugin(plugins, ...) "{{{3
                         let files += sfiles
                     endfor
                 endif
-                call s:LoadConfig('bundle/'. pname)
+                call s:LoadConfig('bundle/'. plugin)
             endif
         endif
     endfor
@@ -163,13 +170,14 @@ function! enabler#Plugin(plugins, ...) "{{{3
             exec 'runtime' fnameescape(file)
         endfor
     endif
-    for pname in a:plugins
-        if has_key(s:onload, pname)
-            for e in s:onload[pname]
+    for plugin in a:plugins
+        if has_key(s:onload, plugin)
+            for e in s:onload[plugin]
                 exec e
             endfor
         endif
     endfor
+    return rtp
 endf
 
 
@@ -226,7 +234,7 @@ endf
 
 
 function! enabler#Autoload(rx, ...) "{{{3
-    let ps = filter(copy(a:000), '!has_key(s:loaded, v:val)')
+    let ps = filter(copy(a:000), '!s:IsLoaded(v:val)')
     if !empty(ps)
         let s:autoloads[a:rx] = get(s:autoloads, a:rx, []) + ps
         for p in ps
@@ -243,7 +251,7 @@ function! enabler#Ftplugin(ft, ...) "{{{3
     else
         let ps = a:000
     endif
-    let ps = filter(copy(ps), '!has_key(s:loaded, v:val)')
+    let ps = filter(copy(ps), '!s:IsLoaded(v:val)')
     if !empty(ps)
         let s:ftplugins[a:ft] = get(s:ftplugins, a:ft, []) + ps
         for p in ps
@@ -255,7 +263,7 @@ endf
 
 " :display: enabler#Command(plugin, "CMD DEF", ?OPTIONS={}) or enabler#Command(plugin, ["CMD", "DEF"], ?OPTIONS={})
 function! enabler#Command(plugin, cmddef, ...) "{{{3
-    if has_key(s:loaded, a:plugin)
+    if s:IsLoaded(a:plugin)
         return
     endif
     let options = a:0 >= 1 ? a:1 : {}
@@ -321,7 +329,7 @@ endf
 "   call enabler#Map('tmarks_vim', '<silent> <f2> :TMarks<cr>')
 function! enabler#Map(plugin, args) "{{{3
     " echom "DBG enabler#Map" string(a:args) a:plugin
-    if has_key(s:loaded, a:plugin)
+    if s:IsLoaded(a:plugin)
         return
     endif
     let mcmd = 'map'

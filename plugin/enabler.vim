@@ -1,7 +1,7 @@
 " @Author:      Tom Link (micathom AT gmail com?subject=[vim])
 " @GIT:         http://github.com/tomtom/enabler_vim/
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    96
+" @Revision:    100
 " GetLatestVimScripts: 0 0 :AutoInstall: enabler.vim
 " Enable plugins
 
@@ -89,10 +89,10 @@ command! -bar Enableupdate call enabler#Update()
 " Generate stub commands for all parseable plugins/bundles in 
 " |g:enabler#auto#dirs| and save to |g:enabler_autofile|.
 " See also |enabler#auto#Generate()|.
-command! -nargs=* -complete=file Enablegenerate call enabler#auto#Generate(<f-args>)
+command! -bar -nargs=* -complete=file Enablegenerate call enabler#auto#Generate(<f-args>)
 
 " Load |g:enabler_autofile|.
-command! Autoenabler exec 'source' fnameescape(g:enabler_autofile)
+command! -bar Autoenabler exec 'source' fnameescape(g:enabler_autofile)
 
 " Generate help tags for all bundles in |g:enabler#dirs|.
 command! -bar Enablehelptags call enabler#helptags#Generate()
