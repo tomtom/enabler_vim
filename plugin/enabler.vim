@@ -94,6 +94,9 @@ command! -nargs=* -complete=file Enablegenerate call enabler#auto#Generate(<f-ar
 " Load |g:enabler_autofile|.
 command! Autoenabler exec 'source' fnameescape(g:enabler_autofile)
 
+" Generate help tags for all bundles in |g:enabler#dirs|.
+command! -bar Enablehelptags call enabler#helptags#Generate()
+
 
 augroup Enabler
     autocmd!
