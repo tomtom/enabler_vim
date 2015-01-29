@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    432
+" @Revision:    461
 
 
 if !exists('g:enabler#dirs')
@@ -80,6 +80,7 @@ endf
 " Examples:
 "   call enabler#Dependency('vikitasks_vim', ['viki_vim'])
 function! enabler#Dependency(plugin, dependencies) "{{{3
+    " echom "DBG enabler#Dependency" a:plugin s:IsLoaded(a:plugin) string(a:dependencies)
     if !s:IsLoaded(a:plugin)
         let s:dependencies[a:plugin] = get(s:dependencies, a:plugin, []) + a:dependencies
         call s:AddUndefine(a:plugin, printf('call s:Remove(s:dependencies, %s)', string(a:plugin)))
@@ -111,7 +112,7 @@ function! enabler#Complete(lead, line, col) "{{{3
 endf
 
 
-" :display: enabler#Plugin(plugins, ?load_now=0, ?[subdir_rxs])
+" :display: enabler#Plugin(plugins, ?load_now=0, ?[subdir_rxs], ?rtp=split(&rtp, ','))
 " If load_now == 1, load the vim files right away.
 function! enabler#Plugin(plugins, ...) "{{{3
     let fname_rxs = ['[\/]_enabler.vim$', '[\/]plugin[\/][^\/]\{-}\.vim$']
@@ -119,9 +120,10 @@ function! enabler#Plugin(plugins, ...) "{{{3
     if a:0 >= 2
         let fname_rxs += a:2
     endif
+    let rtp = a:0 >= 3 ? a:3 : split(&rtp, ',')
+    " echom "DBG enabler#Plugin" string(a:plugins) load_now
     " let fname_rx = '\('. join(fname_rxs, '\|') .'\)'
     let dirs = s:Dirs()
-    let rtp = split(&rtp, ',')
     let files = []
     for plugin in a:plugins
         if !has_key(dirs, plugin)
@@ -131,7 +133,7 @@ function! enabler#Plugin(plugins, ...) "{{{3
         else
             let s:loaded[plugin] = 1
             if has_key(s:dependencies, plugin)
-                let rtp = enabler#Plugin(s:dependencies[plugin], load_now)
+                let rtp = enabler#Plugin(s:dependencies[plugin], load_now, [], rtp)
             endif
             let dir = dirs[plugin]
             let ndir = len(dir) + len('/')
@@ -167,7 +169,14 @@ function! enabler#Plugin(plugins, ...) "{{{3
     let &rtp = join(rtp, ',')
     if load_now
         for file in files
-            exec 'runtime' fnameescape(file)
+            try
+                exec 'runtime!' fnameescape(file)
+            catch
+                echohl ErrorMsg
+                unsilent echom v:exception
+                unsilent echom v:throwpoint
+                echohl NONE
+            endtry
         endfor
     endif
     for plugin in a:plugins
@@ -291,15 +300,15 @@ function! enabler#Command(plugin, cmddef, ...) "{{{3
         call s:AddUndefine(a:plugin, 'delcommand '. cmd)
     catch
         echohl Error
-        echom "Enabler: Error when defining stub command:" sdef
-        echom v:exception
+        unsilent echom "Enabler: Error when defining stub command:" sdef
+        unsilent echom v:exception
         echohl NONE
     endtry
 endf
 
 
 function! s:EnableCommand(cmd, plugin, bang, range, args) "{{{3
-    " exec 'delcommand' a:cmd
+    " echom "DBG EnableCommand" a:cmd a:plugin
     call enabler#Plugin([a:plugin])
     let range = join(filter(copy(a:range), '!empty(v:val)'), ',')
     if exists(':'. a:cmd) == 2
@@ -312,13 +321,13 @@ function! s:EnableCommand(cmd, plugin, bang, range, args) "{{{3
             " that isn't visible in this context.
         catch
             echohl Error
-            echom "Exception" v:exception "from" v:throwpoint
-            echom v:errmsg
+            unsilent echom "Exception" v:exception "from" v:throwpoint
+            unsilent echom v:errmsg
             echohl NONE
         endtry
     else
         echohl Error
-        echom "Enabler: Unknown command:" a:cmd
+        unsilent echom "Enabler: Unknown command:" a:cmd
         echohl NONE
     endif
 endf
@@ -328,7 +337,7 @@ endf
 " Examples:
 "   call enabler#Map('tmarks_vim', '<silent> <f2> :TMarks<cr>')
 function! enabler#Map(plugin, args) "{{{3
-    " echom "DBG enabler#Map" string(a:args) a:plugin
+    " unsilent echom "DBG enabler#Map" string(a:args) a:plugin
     if s:IsLoaded(a:plugin)
         return
     endif
@@ -438,7 +447,10 @@ function! enabler#FuncUndefined(fn) "{{{3
     for ps in values(autoloads)
         let plugins += ps
     endfor
-    call enabler#Plugin(plugins)
+    if !empty(plugins)
+        " echom "DBG enabler#FuncUndefined" a:fn string(autoloads) string(plugins)
+        call enabler#Plugin(plugins)
+    endif
 endf
 
 
