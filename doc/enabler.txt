@@ -257,7 +257,7 @@ enabler#Onload(plugin, exec)
     Define a vim command to be executed after enabling a plugin.
 
                                                     *enabler#Plugin()*
-enabler#Plugin(plugins, ?load_now=0, ?[subdir_rxs])
+enabler#Plugin(plugins, ?load_now=0, ?[subdir_rxs], ?rtp=split(&rtp, ','))
     If load_now == 1, load the vim files right away.
 
                                                     *enabler#Autoload()*
