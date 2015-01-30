@@ -21,6 +21,9 @@ Enabler can also scan available plugins/bundles and generate stub commands and
 maps for you (see |:Enablegenerate|). These autoenabler definitions can be 
 loaded via |:Autoenabler|.
 
+The doc files of installed plugins/bundles can be made available via 
+|:Enablehelptags|.
+
 Most vim plugin managers try to do at least two things: manage your 
 'runtimepath' and manage (install, update, remove) plugins. The Enabler plugin 
 focuses on the first task, i.e., managing the 'runtimepath' variable and 
