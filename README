@@ -6,7 +6,7 @@ slowing down startup time.
 
 Plugins/bundles are enabled:
 
-    - on explicit demand via |:Enableplugin|
+    - on explicit demand via |:Enable|
     - or implicitly when
         - setting a filetype (see |:Enablefiletype|)
         - editing a file matching a |regexp| (see |:Enablefilepattern|)
