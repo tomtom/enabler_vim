@@ -1,7 +1,7 @@
 " @Author:      Tom Link (micathom AT gmail com?subject=[vim])
 " @GIT:         http://github.com/tomtom/enabler_vim/
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    100
+" @Revision:    101
 " GetLatestVimScripts: 0 0 :AutoInstall: enabler.vim
 " Enable plugins
 
@@ -16,7 +16,8 @@ set cpo&vim
 
 if !exists('g:enabler_autofile')
     "                                                 *autoenabler.vim*
-    " If non-empty, load this file with enabler definitions on startup.
+    " If non-empty, |:Enablegenerate| writes stub commands to this file. 
+    " You can use |:Autoenabler| to load the file into vim.
     let g:enabler_autofile = split(&rtp, ',')[0] .'/autoenabler.vim'   "{{{2
 endif
 

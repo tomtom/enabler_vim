@@ -67,41 +67,41 @@ like the the following lines at the top of the |vimrc| file:
     """ Enable a standard set of plugins you always use:
     Enable ...
 
-    """ Optionally load |autoenabler.vim|:
+    """ Optionally load |autoenabler.vim| (must run |:Enablegenerate| first):
     Autoenabler
 
 
 ========================================================================
 Contents~
 
-        g:enabler_autofile .............. |g:enabler_autofile|
-        :Enable ......................... |:Enable|
-        :Enableautoload ................. |:Enableautoload|
-        :Enablefilepattern .............. |:Enablefilepattern|
-        :Enablefiletype ................. |:Enablefiletype|
-        :Enablecommand .................. |:Enablecommand|
-        :Enablemap ...................... |:Enablemap|
-        :Enableupdate ................... |:Enableupdate|
-        :Enablegenerate ................. |:Enablegenerate|
-        :Autoenabler .................... |:Autoenabler|
-        :Enablehelptags ................. |:Enablehelptags|
-        g:enabler#auto#dirs ............. |g:enabler#auto#dirs|
-        g:enabler#auto#kinds ............ |g:enabler#auto#kinds|
-        enabler#auto#Generate ........... |enabler#auto#Generate()|
-        g:enabler#dirs .................. |g:enabler#dirs|
-        g:enabler#exclude_rx ............ |g:enabler#exclude_rx|
-        g:enabler#exclude_dirs .......... |g:enabler#exclude_dirs|
-        g:enabler#rtp_pos ............... |g:enabler#rtp_pos|
-        g:enabler#config_dir ............ |g:enabler#config_dir|
-        enabler#Dependency .............. |enabler#Dependency()|
-        enabler#Onload .................. |enabler#Onload()|
-        enabler#Plugin .................. |enabler#Plugin()|
-        enabler#Autoload ................ |enabler#Autoload()|
-        enabler#Ftplugin ................ |enabler#Ftplugin()|
-        enabler#Command ................. |enabler#Command()|
-        enabler#Map ..................... |enabler#Map()|
-        enabler#Filepattern ............. |enabler#Filepattern()|
-        enabler#Filetypepatterns ........ |enabler#Filetypepatterns()|
+        g:enabler_autofile ............... |g:enabler_autofile|
+        :Enable .......................... |:Enable|
+        :Enableautoload .................. |:Enableautoload|
+        :Enablefilepattern ............... |:Enablefilepattern|
+        :Enablefiletype .................. |:Enablefiletype|
+        :Enablecommand ................... |:Enablecommand|
+        :Enablemap ....................... |:Enablemap|
+        :Enableupdate .................... |:Enableupdate|
+        :Enablegenerate .................. |:Enablegenerate|
+        :Autoenabler ..................... |:Autoenabler|
+        :Enablehelptags .................. |:Enablehelptags|
+        g:enabler#auto#dirs .............. |g:enabler#auto#dirs|
+        g:enabler#auto#kinds ............. |g:enabler#auto#kinds|
+        enabler#auto#Generate ............ |enabler#auto#Generate()|
+        g:enabler#dirs ................... |g:enabler#dirs|
+        g:enabler#exclude_rx ............. |g:enabler#exclude_rx|
+        g:enabler#exclude_dirs ........... |g:enabler#exclude_dirs|
+        g:enabler#rtp_pos ................ |g:enabler#rtp_pos|
+        g:enabler#config_dir ............. |g:enabler#config_dir|
+        enabler#Dependency ............... |enabler#Dependency()|
+        enabler#Onload ................... |enabler#Onload()|
+        enabler#Plugin ................... |enabler#Plugin()|
+        enabler#Autoload ................. |enabler#Autoload()|
+        enabler#Ftplugin ................. |enabler#Ftplugin()|
+        enabler#Command .................. |enabler#Command()|
+        enabler#Map ...................... |enabler#Map()|
+        enabler#Filepattern .............. |enabler#Filepattern()|
+        enabler#Filetypepatterns ......... |enabler#Filetypepatterns()|
 
 
 ========================================================================
@@ -110,7 +110,8 @@ plugin/enabler.vim~
                                                     *g:enabler_autofile*
 g:enabler_autofile             (default: split(&rtp, ',')[0] .'/autoenabler.vim')
                                                     *autoenabler.vim*
-    If non-empty, load this file with enabler definitions on startup.
+    If non-empty, |:Enablegenerate| writes stub commands to this file. 
+    You can use |:Autoenabler| to load the file into vim.
 
                                                     *:Enable*
 :Enable[!] PLUGINS ...
