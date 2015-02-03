@@ -49,7 +49,7 @@ to ~/.vim/bundle/enabler_vim: >
     git clone https://github.com/tomtom/enabler_vim.git
 
 In order to make full use of the enabler plugin, you could insert something 
-like the the following lines at the top of the |vimrc| file:
+like the the following lines at the top of the |vimrc| file: >
 
     """ If enabler is installed as bundle, add the directory of the enabler 
     """ bundle to 'rtp' (the value may differ from your setup):
@@ -111,7 +111,8 @@ plugin/enabler.vim~
 g:enabler_autofile             (default: split(&rtp, ',')[0] .'/autoenabler.vim')
                                                     *autoenabler.vim*
     If non-empty, |:Enablegenerate| writes stub commands to this file. 
-    You can use |:Autoenabler| to load the file into vim.
+    You can use |:Autoenabler| (e.g. in |vimrc|) to load the file into 
+    vim.
 
                                                     *:Enable*
 :Enable[!] PLUGINS ...
