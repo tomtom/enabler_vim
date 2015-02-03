@@ -1,11 +1,14 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    4
+" @Revision:    8
 
 
 " :nodoc:
 function! enabler#helptags#Generate() "{{{3
+    echon 'Generating helptags (please wait) ... '
+    redraw
     call s:MakeHelpTags(g:enabler#dirs, 'guess') 
+    echo 'DONE!'
 endf
 
 
