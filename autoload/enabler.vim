@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    461
+" @Revision:    463
 
 
 if !exists('g:enabler#dirs')
@@ -297,7 +297,7 @@ function! enabler#Command(plugin, cmddef, ...) "{{{3
                     \ string(a:plugin),
                     \ range
                     \ )
-        call s:AddUndefine(a:plugin, 'delcommand '. cmd)
+        call s:AddUndefine(a:plugin, ':if exists(":'. cmd .'") == 2 | delcommand '. cmd .' | endif')
     catch
         echohl Error
         unsilent echom "Enabler: Error when defining stub command:" sdef
