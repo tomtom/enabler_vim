@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    463
+" @Revision:    474
 
 
 if !exists('g:enabler#dirs')
@@ -122,7 +122,6 @@ function! enabler#Plugin(plugins, ...) "{{{3
     endif
     let rtp = a:0 >= 3 ? a:3 : split(&rtp, ',')
     " echom "DBG enabler#Plugin" string(a:plugins) load_now
-    " let fname_rx = '\('. join(fname_rxs, '\|') .'\)'
     let dirs = s:Dirs()
     let files = []
     for plugin in a:plugins
@@ -142,6 +141,7 @@ function! enabler#Plugin(plugins, ...) "{{{3
                 let s:rtp_pos += 1
                 if has_key(s:undefine, plugin)
                     for undef in s:undefine[plugin]
+                        " echom "DBG undef" undef
                         if g:enabler#debug
                             exec undef
                         else
@@ -155,10 +155,12 @@ function! enabler#Plugin(plugins, ...) "{{{3
                     let rtp = insert(rtp, adir, -1)
                 endif
                 if load_now == 1
-                    let vimfiles = split(glob(dir .'/**/*.vim'), '\n')
+                    " echom "DBG glob dir" dir
+                    let vimfiles = split(glob(dir .'/plugin/*.vim'), '\n')
                     for fname_rx in fname_rxs
                         let sfiles = filter(copy(vimfiles), 'v:val =~# fname_rx')
                         let sfiles = map(sfiles, 'strpart(v:val, ndir)')
+                        " echom "DBG sfiles" string(sfiles)
                         let files += sfiles
                     endfor
                 endif
@@ -170,6 +172,7 @@ function! enabler#Plugin(plugins, ...) "{{{3
     if load_now
         for file in files
             try
+                " echom 'DBG runtime!' file
                 exec 'runtime!' fnameescape(file)
             catch
                 echohl ErrorMsg
@@ -352,14 +355,14 @@ function! enabler#Map(plugin, args) "{{{3
     while idx < nargs
         let item = margs[idx]
         if mode == 'cmd'
-            if item =~ '^.\?\(nore\)\?map$'
+            if item =~# '^.\?\(nore\)\?map$'
                 let mcmd = item
             else
                 let mode = 'args'
                 continue
             endif
         elseif mode == 'args'
-            if item =~ '^<\(buffer\|nowait\|silent\|special\|script\|expr\|unique\)>$'
+            if item =~# '^<\(buffer\|nowait\|silent\|special\|script\|expr\|unique\)>$'
                 call add(args, item)
             else
                 let mode = 'lhs'
@@ -442,7 +445,8 @@ endf
 
 " :nodoc:
 function! enabler#FuncUndefined(fn) "{{{3
-    let autoloads = filter(copy(s:autoloads), 'a:fn =~ v:key')
+    " echom "DBG enabler#FuncUndefined" a:fn
+    let autoloads = filter(copy(s:autoloads), 'a:fn =~# v:key')
     let plugins = []
     for ps in values(autoloads)
         let plugins += ps
@@ -482,7 +486,7 @@ endf
 
 function! enabler#Filetypepatterns(filename) "{{{3
     for rx in keys(s:filepatterns)
-        if a:filename =~ rx
+        if a:filename =~# rx
             let ps = s:filepatterns[rx]
             call enabler#Plugin(ps)
         endif
