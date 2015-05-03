@@ -172,7 +172,7 @@ function! enabler#Plugin(plugins, ...) "{{{3
     if load_now
         for file in files
             try
-                " echom 'DBG runtime!' file
+                " unsilent echom 'DBG runtime!' file
                 exec 'runtime!' fnameescape(file)
             catch
                 echohl ErrorMsg
@@ -222,10 +222,12 @@ function! s:LoadConfig(name) "{{{3
     if !has_key(s:loaded_config, a:name)
         if !empty(g:enabler#config_dir)
             let cfg = g:enabler#config_dir .'/'. a:name .'.vim'
+            " echom "DBG LoadConfig config_dir" cfg
             if filereadable(cfg)
                 exec 'source' fnameescape(cfg)
             endif
         else
+            " echom "DBG LoadConfig enabler" a:name
             exec 'runtime! enabler/'. fnameescape(a:name) .'.vim'
         endif
         let s:loaded_config[a:name] = 1
