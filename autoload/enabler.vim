@@ -121,7 +121,7 @@ function! enabler#Plugin(plugins, ...) "{{{3
         let fname_rxs += a:2
     endif
     let rtp = a:0 >= 3 ? a:3 : split(&rtp, ',')
-    " echom "DBG enabler#Plugin" string(a:plugins) load_now
+    " echom "DBG enabler#Plugin" string(a:plugins) load_now string(fname_rxs)
     let dirs = s:Dirs()
     let files = []
     for plugin in a:plugins
@@ -173,6 +173,7 @@ function! enabler#Plugin(plugins, ...) "{{{3
         for file in files
             try
                 " unsilent echom 'DBG runtime!' file
+                " echom "DBG" 'runtime!' fnameescape(file)
                 exec 'runtime!' fnameescape(file)
             catch
                 echohl ErrorMsg
@@ -185,6 +186,7 @@ function! enabler#Plugin(plugins, ...) "{{{3
     for plugin in a:plugins
         if has_key(s:onload, plugin)
             for e in s:onload[plugin]
+                " echom "DBG exec" e
                 exec e
             endfor
         endif
@@ -464,8 +466,9 @@ endf
 function! enabler#AutoFiletype(ft) "{{{3
     call s:LoadConfig('ft/'. a:ft .'.vim')
     let ftplugins = get(s:ftplugins, a:ft, [])
+    " echom "DBG enabler#AutoFiletype" a:ft string(ftplugins)
     if !empty(ftplugins)
-        call enabler#Plugin(ftplugins, 0, [
+        call enabler#Plugin(ftplugins, 1, [
                     \ '[\/]ftdetect[\/]'. a:ft .'[\/][^\/]\{-}\.vim$',
                     \ '[\/]ftplugin[\/]'. a:ft .'[\/][^\/]\{-}\.vim$',
                     \ '[\/]ftplugin[\/]'. a:ft .'_[^\/]\{-}\.vim$',
