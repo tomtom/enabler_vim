@@ -8,7 +8,7 @@
 if &cp || exists("loaded_enabler")
     finish
 endif
-let loaded_enabler = 1
+let loaded_enabler = 100
 
 let s:save_cpo = &cpo
 set cpo&vim
