@@ -2,7 +2,7 @@
 " @GIT:         http://github.com/tomtom/enabler_vim/
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
 " @Revision:    103
-" GetLatestVimScripts: 0 0 :AutoInstall: enabler.vim
+" GetLatestVimScripts: 5101 0 :AutoInstall: enabler.vim
 " Enable plugins
 
 if &cp || exists("loaded_enabler")
