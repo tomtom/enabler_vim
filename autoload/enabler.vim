@@ -277,6 +277,22 @@ function! enabler#Ftplugin(ft, ...) "{{{3
 endf
 
 
+" :display: enabler#Commands(plugin, [CMD...])
+function! enabler#Commands(plugin, commands) "{{{3
+    if s:IsLoaded(a:plugin)
+        return
+    endif
+    let args = []
+    for cmd in a:commands
+        if cmd =~ '^[<-]'
+            call add(args, cmd)
+        else
+            call enabler#Command(a:plugin, args + [cmd])
+        endif
+    endfor
+endf
+
+
 " :display: enabler#Command(plugin, "CMD DEF", ?OPTIONS={}) or enabler#Command(plugin, ["CMD", "DEF"], ?OPTIONS={})
 function! enabler#Command(plugin, cmddef, ...) "{{{3
     if s:IsLoaded(a:plugin)

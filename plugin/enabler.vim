@@ -2,8 +2,7 @@
 " @GIT:         http://github.com/tomtom/enabler_vim/
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
 " @Revision:    103
-" GetLatestVimScripts: 5101 0 :AutoInstall: enabler.vim
-" Enable plugins
+" GetLatestVimScripts: 5101 0 enabler.vim
 
 if &cp || exists("loaded_enabler")
     finish
@@ -63,7 +62,7 @@ command! -nargs=+ -complete=custom,enabler#Complete Enablefilepattern call enabl
 "   :Enablefiletype scala scala-vim
 command! -bar -nargs=+ -complete=custom,enabler#Complete Enablefiletype call enabler#Ftplugin(<f-args>)
 
-" :display: :Enablecommand[!] PLUGIN [OPTIONS] COMMAND
+" :display: :Enablecommand PLUGIN [OPTIONS] COMMAND
 " Define a dummy COMMAND that will load PLUGINS upon first invocation.
 " The dummy command will be deleted. It is assumed that one of the 
 " loaded PLUGINS will redefine the command.
@@ -71,8 +70,11 @@ command! -bar -nargs=+ -complete=custom,enabler#Complete Enablefiletype call ena
 " OPTIONS is a list of |:command|'s arguments.
 "
 " Example:
-"   :Enablecommand TMarks tmarks_vim
+"   :Enablecommand tmarks_vim TMarks
 command! -bar -nargs=+ -complete=custom,enabler#Complete Enablecommand let s:tmp = [<f-args>] | call enabler#Command(s:tmp[0], s:tmp[1:-1]) | unlet! s:tmp
+
+" :display: :Enablecommands PLUGIN [OPTIONS] COMMAND...
+command! -bar -nargs=+ -complete=custom,enabler#Complete Enablecommands let s:tmp = [<f-args>] | call enabler#Commands(s:tmp[0], s:tmp[1:-1]) | unlet! s:tmp
 
 " :display: :Enablemap PLUGIN [MAPCMD] [MAPARGS] LHS [RHS]
 " Call |enabler#Map()| with MAP and [PLUGIN] as arguments.
