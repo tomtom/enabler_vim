@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    474
+" @Revision:    499
 
 
 if !exists('g:enabler#dirs')
@@ -221,10 +221,11 @@ endf
 let s:loaded_config = {}
 
 function! s:LoadConfig(name) "{{{3
+    " echom "DBG LoadConfig name" a:name
     if !has_key(s:loaded_config, a:name)
         if !empty(g:enabler#config_dir)
             let cfg = g:enabler#config_dir .'/'. a:name .'.vim'
-            " echom "DBG LoadConfig config_dir" cfg
+            " echom "DBG LoadConfig config_file" cfg filereadable(cfg)
             if filereadable(cfg)
                 exec 'source' fnameescape(cfg)
             endif
@@ -511,6 +512,23 @@ function! enabler#Filetypepatterns(filename) "{{{3
             let ps = s:filepatterns[rx]
             call enabler#Plugin(ps)
         endif
+    endfor
+endf
+
+
+function! enabler#Autocmd(event, pattern, ...) abort "{{{3
+    let cmd = printf('call s:EnableAutocmd(%s, expand("<amatch>"), %s)', string(a:event), string(a:000))
+    exec 'autocmd Enabler' a:event a:pattern cmd
+    exec 'autocmd Enabler' a:event a:pattern 'autocmd! Enabler' a:event a:pattern cmd
+endf
+
+
+function! s:EnableAutocmd(event, fname, plugins) abort "{{{3
+    for plugin in a:plugins
+        let ml = matchlist(plugin, '^\([^#]\+\)\%(#\(.*\)\)\?$')
+        let [match, plugin1, group; rest] = ml
+        call enabler#Plugin([plugin1], 1)
+        exec 'doautocmd' group a:event a:fname
     endfor
 endf
 

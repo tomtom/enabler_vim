@@ -1,7 +1,7 @@
 " @Author:      Tom Link (micathom AT gmail com?subject=[vim])
 " @GIT:         http://github.com/tomtom/enabler_vim/
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    103
+" @Revision:    111
 " GetLatestVimScripts: 5101 0 enabler.vim
 
 if &cp || exists("loaded_enabler")
@@ -85,6 +85,12 @@ command! -bar -nargs=+ -complete=custom,enabler#Complete Enablecommands let s:tm
 "   :Enablermap tmarks_vim <silent> <f2> :TMarks<cr>
 "   :Enablermap ttoc_vim inoremap <silent> <f10> :TToC<cr>
 command! -nargs=+ -complete=custom,enabler#Complete Enablemap let s:tmp = [<f-args>] | call enabler#Map(s:tmp[0], s:tmp[1:-1]) | unlet! s:tmp
+
+" :display: Enableautocmd EVENT PATTERN PLUGIN[#GROUP]...
+" After loading PLUGIN, the |:doautocmd| will be called with GROUP, 
+" EVENT and the matching filename/expression (|<amatch>|). If GROUP is 
+" undefined, the PLUGIN name will be used.
+command! -bar -nargs=+ Enableautocmd call enabler#Autocmd(<f-args>)
 
 " Update the list of known plugins -- e.g. after installing a new 
 " plugin while VIM is running.
