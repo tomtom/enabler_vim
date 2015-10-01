@@ -1,21 +1,27 @@
 *enabler.txt*         Load plugins/bundles as needed
                       Author: Tom Link, micathom at gmail com
 
+The Enabler plugin loads plugins/bundles (similar to pathogen) on demand as 
+requested by the user. It's main goal is to manage your 'runtimepath' as 
+needed. It thus allows users to have tons of vim plugins/bundles at their 
+finger tips without slowing down startup time.
 
-The Enabler plugin loads plugins/bundles (à la pathogen) on demand as requested 
-by the user. It's main goal is to manage your 'runtimepath' as needed. It thus 
-allows users to have tons of vim plugins/bundles at their finger tips without 
-slowing down startup time.
+Enabler supports the following types of bundles:
 
-Plugins/bundles are enabled:
+    1. Bundles (see |g:enabler#dirs|) are enabled on explicit demand via 
+       |:Enable|.
 
-    - on explicit demand via |:Enable|
-    - or implicitly when
+    2. After invoking |:Autoenabler|, autobundles (see |g:enabler#auto#dirs|, 
+       which defaults to |g:enabler#dirs|) are also enabled implicitly when:
+
         - setting a filetype (see |:Enablefiletype|)
         - editing a file matching a |regexp| (see |:Enablefilepattern|)
         - calling an unknown function (see |:Enableautoload|)
         - invoking a map (see |:Enablemap|)
         - calling a command (see |:Enablecommand|)
+
+    3. Filetype bundles (see |g:enabler#ftbundle_dirs|) are enabled when 
+       opening a file with a given filetype for the first time.
 
 Enabler can also scan available plugins/bundles and generate stub commands and 
 maps for you (see |:Enablegenerate|). These autoenabler definitions can be 
@@ -80,7 +86,9 @@ Contents~
         :Enablefilepattern ............... |:Enablefilepattern|
         :Enablefiletype .................. |:Enablefiletype|
         :Enablecommand ................... |:Enablecommand|
+        :Enablecommands .................. |:Enablecommands|
         :Enablemap ....................... |:Enablemap|
+        :Enableautocmd ................... |:Enableautocmd|
         :Enableupdate .................... |:Enableupdate|
         :Enablegenerate .................. |:Enablegenerate|
         :Autoenabler ..................... |:Autoenabler|
@@ -89,6 +97,7 @@ Contents~
         g:enabler#auto#kinds ............. |g:enabler#auto#kinds|
         enabler#auto#Generate ............ |enabler#auto#Generate()|
         g:enabler#dirs ................... |g:enabler#dirs|
+        g:enabler#ftbundle_dirs .......... |g:enabler#ftbundle_dirs|
         g:enabler#exclude_rx ............. |g:enabler#exclude_rx|
         g:enabler#exclude_dirs ........... |g:enabler#exclude_dirs|
         g:enabler#rtp_pos ................ |g:enabler#rtp_pos|
@@ -98,10 +107,12 @@ Contents~
         enabler#Plugin ................... |enabler#Plugin()|
         enabler#Autoload ................. |enabler#Autoload()|
         enabler#Ftplugin ................. |enabler#Ftplugin()|
+        enabler#Commands ................. |enabler#Commands()|
         enabler#Command .................. |enabler#Command()|
         enabler#Map ...................... |enabler#Map()|
         enabler#Filepattern .............. |enabler#Filepattern()|
         enabler#Filetypepatterns ......... |enabler#Filetypepatterns()|
+        enabler#Autocmd .................. |enabler#Autocmd()|
 
 
 ========================================================================
@@ -155,7 +166,7 @@ g:enabler_autofile             (default: split(&rtp, ',')[0] .'/autoenabler.vim'
       :Enablefiletype scala scala-vim
 
                                                     *:Enablecommand*
-:Enablecommand[!] PLUGIN [OPTIONS] COMMAND
+:Enablecommand PLUGIN [OPTIONS] COMMAND
     Define a dummy COMMAND that will load PLUGINS upon first invocation.
     The dummy command will be deleted. It is assumed that one of the 
     loaded PLUGINS will redefine the command.
@@ -163,7 +174,10 @@ g:enabler_autofile             (default: split(&rtp, ',')[0] .'/autoenabler.vim'
     OPTIONS is a list of |:command|'s arguments.
 
     Example:
-      :Enablecommand TMarks tmarks_vim
+      :Enablecommand tmarks_vim TMarks
+
+                                                    *:Enablecommands*
+:Enablecommands PLUGIN [OPTIONS] COMMAND...
 
                                                     *:Enablemap*
 :Enablemap PLUGIN [MAPCMD] [MAPARGS] LHS [RHS]
@@ -174,6 +188,12 @@ g:enabler_autofile             (default: split(&rtp, ',')[0] .'/autoenabler.vim'
     Examples:
       :Enablermap tmarks_vim <silent> <f2> :TMarks<cr>
       :Enablermap ttoc_vim inoremap <silent> <f10> :TToC<cr>
+
+                                                    *:Enableautocmd*
+Enableautocmd EVENT PATTERN PLUGIN[#GROUP]...
+    After loading PLUGIN, the |:doautocmd| will be called with GROUP, 
+    EVENT and the matching filename/expression (|<amatch>|). If GROUP is 
+    undefined, the PLUGIN name will be used.
 
                                                     *:Enableupdate*
 :Enableupdate
@@ -200,14 +220,25 @@ autoload/enabler/auto.vim~
 
                                                     *g:enabler#auto#dirs*
 g:enabler#auto#dirs            (default: g:enabler#dirs)
+    A list of directories that will be scanned by |:Enablegenerate|. 
+    Only bundles in these directories will be accessible via 
+    |:Autoenabler|.
+
+    Since the file |g:enabler_autofile| is read when executing 
+    |:Autoenabler|, it may have some impact on startup time. This 
+    should be smaller than when loading the plugins right away, 
+    though. If you use a lot of plugins, you might want to consider 
+    separating |g:enabler#auto#dirs| from |g:enabler#dirs| and using 
+    |g:enabler#ftbundle_dirs|.
 
                                                     *g:enabler#auto#kinds*
-g:enabler#auto#kinds           (default: {'ftplugins': 1, 'plugin': 'cf', 'autoload': 'f'})
+g:enabler#auto#kinds           (default: {'ftplugins': 1, 'ftbundle': 1, 'plugin': 'cf', 'autoload': 'f'})
     Define for what |enabler#auto#Generate()| generates stubs.
     A dictionary with the following keys:
 
       ftplugins (BOOLEAN) ... scan for ftplugins, syntax definitions, 
                               ftdetect files etc.
+      ftbundle (BOOLEAN) .... see |g:enabler#ftbundle_dirs|
       plugin (see below) .... scan the "plugin" subdirectory
       autoload (see below) .. scan the "autoload" subdirectory
 
@@ -234,6 +265,23 @@ autoload/enabler.vim~
                                                     *g:enabler#dirs*
 g:enabler#dirs                 (default: split(globpath(&rtp, 'bundle'), '\n'))
     A list of directories where plugins are stored.
+    Any bundle in one of these directories can be enabled via 
+    |:Enable|.
+
+    See also |g:enabler#auto#dirs| for support for |:Autoenabler|.
+
+                                                    *g:enabler#ftbundle_dirs*
+g:enabler#ftbundle_dirs        (default: split(globpath(&rtp, 'ftbundle'), '\n'))
+    A list of directories that contain filetype bundles. A ftbundle is 
+    a subdirectory with the name of a filetype. All bundles in this 
+    subdirectory will be enabled when editing a file with the given 
+    filetype for the first time.
+
+    |:Enablegenerate| will scan ftbundles for |ftdetect| files in 
+    order to make its |:autocmd|s available for |:Autoenabler|. If 
+    your ftbundles don't include a ftdetect file, it might be 
+    necessary to keep the bundle in |g:enabler#auto#dirs| or to make 
+    sure an appropriate autocmd is executed on startup.
 
                                                     *g:enabler#exclude_rx*
 g:enabler#exclude_rx           (default: '^[._]')
@@ -279,6 +327,9 @@ enabler#Autoload(rx, ...)
                                                     *enabler#Ftplugin()*
 enabler#Ftplugin(ft, PLUGINS...) or enabler#Ftplugin(ft, [PLUGINS])
 
+                                                    *enabler#Commands()*
+enabler#Commands(plugin, [CMD...])
+
                                                     *enabler#Command()*
 enabler#Command(plugin, "CMD DEF", ?OPTIONS={}) or enabler#Command(plugin, ["CMD", "DEF"], ?OPTIONS={})
 
@@ -293,6 +344,9 @@ enabler#Filepattern(rx, ...)
 
                                                     *enabler#Filetypepatterns()*
 enabler#Filetypepatterns(filename)
+
+                                                    *enabler#Autocmd()*
+enabler#Autocmd(event, pattern, ...)
 
 
 
