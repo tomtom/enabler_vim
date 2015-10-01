@@ -1,11 +1,30 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    499
+" @Revision:    549
 
 
 if !exists('g:enabler#dirs')
     " A list of directories where plugins are stored.
+    " Any bundle in one of these directories can be enabled via 
+    " |:Enable|.
+    "
+    " See also |g:enabler#auto#dirs| for support for |:Autoenabler|.
     let g:enabler#dirs = split(globpath(&rtp, 'bundle'), '\n')   "{{{2
+endif
+
+
+if !exists('g:enabler#ftbundle_dirs')
+    " A list of directories that contain filetype bundles. A ftbundle is 
+    " a subdirectory with the name of a filetype. All bundles in this 
+    " subdirectory will be enabled when editing a file with the given 
+    " filetype for the first time.
+    "
+    " |:Enablegenerate| will scan ftbundles for |ftdetect| files in 
+    " order to make its |:autocmd|s available for |:Autoenabler|. If 
+    " your ftbundles don't include a ftdetect file, it might be 
+    " necessary to keep the bundle in |g:enabler#auto#dirs| or to make 
+    " sure an appropriate autocmd is executed on startup.
+    let g:enabler#ftbundle_dirs = split(globpath(&rtp, 'ftbundle'), '\n')   "{{{2
 endif
 
 
@@ -459,6 +478,11 @@ function! s:EnableMap(mcmd, args, lhs, plugin, rhs) "{{{3
     endif
     let lhs = substitute(lhs, '<\ze\w\+\(-\w\+\)*>', '\\<', 'g')
     let lhs = eval('"'. escape(lhs, '"') .'"')
+    if a:mcmd =~ '^[vx]'
+        let lhs = 'gv'. lhs
+    elseif a:mcmd =~ '^[s]'
+        let lhs = "<c-g>gv". lhs
+    endif
     " TLogVAR lhs
     call feedkeys(lhs, 't')
 endf
@@ -481,6 +505,33 @@ endf
 
 " :nodoc:
 function! enabler#AutoFiletype(ft) "{{{3
+    " TLogVAR a:ft
+    if !empty(g:enabler#ftbundle_dirs)
+        let must_update = 0
+        let ftdirs = split(globpath(join(g:enabler#ftbundle_dirs, ','), a:ft), '\n')
+        " TLogVAR ftdirs
+        let allftbundles = []
+        for ftdir in ftdirs
+            let ftbundles = split(globpath(ftdir, '*'), '\n')
+            let ftbundles = filter(ftbundles, 'isdirectory(v:val)')
+            let ftbundles = map(ftbundles, 'matchstr(v:val, ''[\/]\zs[^\/]\+$'')')
+            let ftbundles = filter(ftbundles, '!empty(v:val)')
+            if !empty(ftbundles)
+                if index(g:enabler#dirs, ftdir) == -1
+                    call add(g:enabler#dirs, ftdir)
+                    let must_update = 1
+                endif
+                let allftbundles += ftbundles
+            endif
+        endfor
+        if must_update
+            call enabler#Update()
+        endif
+        if !empty(allftbundles)
+            " TLogVAR allftbundles
+            call enabler#Ftplugin(a:ft, allftbundles)
+        endif
+    endif
     call s:LoadConfig('ft/'. a:ft .'.vim')
     let ftplugins = get(s:ftplugins, a:ft, [])
     " echom "DBG enabler#AutoFiletype" a:ft string(ftplugins)

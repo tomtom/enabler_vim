@@ -1,21 +1,27 @@
 *enabler.txt*         Load plugins/bundles as needed
                       Author: Tom Link, micathom at gmail com
 
+The Enabler plugin loads plugins/bundles (similar to pathogen) on demand as 
+requested by the user. It's main goal is to manage your 'runtimepath' as 
+needed. It thus allows users to have tons of vim plugins/bundles at their 
+finger tips without slowing down startup time.
 
-The Enabler plugin loads plugins/bundles (à la pathogen) on demand as requested 
-by the user. It's main goal is to manage your 'runtimepath' as needed. It thus 
-allows users to have tons of vim plugins/bundles at their finger tips without 
-slowing down startup time.
+Enabler supports the following types of bundles:
 
-Plugins/bundles are enabled:
+    1. Bundles (see |g:enabler#dirs|) are enabled on explicit demand via 
+       |:Enable|.
 
-    - on explicit demand via |:Enable|
-    - or implicitly when
+    2. After invoking |:Autoenabler|, autobundles (see |g:enabler#auto#dirs|, 
+       which defaults to |g:enabler#dirs|) are also enabled implicitly when:
+
         - setting a filetype (see |:Enablefiletype|)
         - editing a file matching a |regexp| (see |:Enablefilepattern|)
         - calling an unknown function (see |:Enableautoload|)
         - invoking a map (see |:Enablemap|)
         - calling a command (see |:Enablecommand|)
+
+    3. Filetype bundles (see |g:enabler#ftbundle_dirs|) are enabled when 
+       opening a file with a given filetype for the first time.
 
 Enabler can also scan available plugins/bundles and generate stub commands and 
 maps for you (see |:Enablegenerate|). These autoenabler definitions can be 

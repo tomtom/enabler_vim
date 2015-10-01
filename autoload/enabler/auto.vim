@@ -1,9 +1,19 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    234
+" @Revision:    266
 
 
 if !exists('g:enabler#auto#dirs')
+    " A list of directories that will be scanned by |:Enablegenerate|. 
+    " Only bundles in these directories will be accessible via 
+    " |:Autoenabler|.
+    "
+    " Since the file |g:enabler_autofile| is read when executing 
+    " |:Autoenabler|, it may have some impact on startup time. This 
+    " should be smaller than when loading the plugins right away, 
+    " though. If you use a lot of plugins, you might want to consider 
+    " separating |g:enabler#auto#dirs| from |g:enabler#dirs| and using 
+    " |g:enabler#ftbundle_dirs|.
     let g:enabler#auto#dirs = g:enabler#dirs   "{{{2
 endif
 
@@ -14,6 +24,7 @@ if !exists('g:enabler#auto#kinds')
     "
     "   ftplugins (BOOLEAN) ... scan for ftplugins, syntax definitions, 
     "                           ftdetect files etc.
+    "   ftbundle (BOOLEAN) .... see |g:enabler#ftbundle_dirs|
     "   plugin (see below) .... scan the "plugin" subdirectory
     "   autoload (see below) .. scan the "autoload" subdirectory
     "
@@ -22,7 +33,7 @@ if !exists('g:enabler#auto#kinds')
     "   c ... commands
     "   f ... functions, autoloads
     "   m ... maps
-    let g:enabler#auto#kinds = {'ftplugins': 1, 'plugin': 'cf', 'autoload': 'f'}   "{{{2
+    let g:enabler#auto#kinds = {'ftplugins': 1, 'ftbundle': 1, 'plugin': 'cf', 'autoload': 'f'}   "{{{2
 endif
 
 
@@ -39,6 +50,7 @@ function! enabler#auto#Generate(...) "{{{3
         echoerr "Enabler: Please set g:enabler_autofile first"
     else
         let vfiles = s:ListVimFiles()
+        let ftbundles = get(g:enabler#auto#kinds, 'ftbundle', 1) ? s:ScanFtbundles() : []
         let fts = get(g:enabler#auto#kinds, 'ftplugins', 1) ? s:ScanFtplugins(vfiles) : []
         let enablers = {}
         let plugins = {}
@@ -87,7 +99,8 @@ function! enabler#auto#Generate(...) "{{{3
                 let auto += readfile(pauto)
             endif
         endfor
-        call writefile(fts + auto, g:enabler_autofile)
+        call writefile(ftbundles + fts + auto, g:enabler_autofile)
+        echom "Wrote :Autoenabler definitions to" g:enabler_autofile
     endif
 endf
 
@@ -117,6 +130,14 @@ function! s:GetBundleName(filename) "{{{3
 endf
 
 
+function! s:ScanFtbundles() "{{{3
+    let path = join(g:enabler#ftbundle_dirs, ',')
+    let files = split(globpath(path, '*/*/ftdetect/*.vim'), '\n')
+    let lines = map(files, 's:GetFtdetect(v:val)')
+    return tlib#list#Flatten(lines)
+endf
+
+
 function! s:ScanFtplugins(files) "{{{3
     let rx = '^[^\/]\+[\/]\%(indent\|ftplugin\|syntax\|ftdetect\)[\/]\%(\([^\/]\+\)[\/]\|\([^\/_.]\+\)\%(_[^\/.]\+\)\?\.vim\)'
     let fts = {}
@@ -135,15 +156,20 @@ function! s:ScanFtplugins(files) "{{{3
                 endif
                 let fts[ft][plugin] = 1
                 if filename =~ '^[^\/]\+[\/]ftdetect[\/]\%(\([^\/]\+\)[\/]\|\([^\/_.]\+\)\%(_[^\/.]\+\)\?\.vim\)'
-                    let lines = readfile(fullname)
-                    let lines = filter(lines, '!empty(v:val) && v:val !~ ''^\s*"''')
-                    let eft += lines
+                    let eft += s:GetFtdetect(fullname)
                 endif
             endif
         endif
     endfor
     let eft += map(items(fts), 'printf("call enabler#Ftplugin(%s, %s)", string(v:val[0]), string(keys(v:val[1])))')
     return eft
+endf
+
+
+function! s:GetFtdetect(filename) abort "{{{3
+    let lines = readfile(a:filename)
+    let lines = filter(lines, '!empty(v:val) && v:val !~ ''^\s*"''')
+    return lines
 endf
 
 
