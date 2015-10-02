@@ -1,3 +1,13 @@
 0.1
 - Initial release
 
+  - enabler#helptags#Generate(): Show message
+  - enabler#Command(): Add extra check for "AddUndefine()"
+  - Use case sensitive matches for filenames
+  - enabler#AutoFiletype(): Call enabler#Plugin() with load_now = 1
+  - NEW :Enablecommands, enabler#Commands()
+  - NEW :Enableautocmd EVENT PATTERN PLUGIN[#GROUP]...
+  - Support for ftbundles/ftplugins
+  MD5 checksum: a51dfad95cc0d93ce59868deef5cf9fd
+version: "1.00"
+
