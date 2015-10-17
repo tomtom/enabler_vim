@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    549
+" @Revision:    553
 
 
 if !exists('g:enabler#dirs')
@@ -143,6 +143,7 @@ function! enabler#Plugin(plugins, ...) "{{{3
     " echom "DBG enabler#Plugin" string(a:plugins) load_now string(fname_rxs)
     let dirs = s:Dirs()
     let files = []
+    let load_plugins = []
     for plugin in a:plugins
         if !has_key(dirs, plugin)
             echoerr "Enabler: Unknown plugin:" plugin
@@ -160,8 +161,8 @@ function! enabler#Plugin(plugins, ...) "{{{3
                 let s:rtp_pos += 1
                 if has_key(s:undefine, plugin)
                     for undef in s:undefine[plugin]
-                        " echom "DBG undef" undef
                         if g:enabler#debug
+                            " echom "DBG undef" undef
                             exec undef
                         else
                             silent! exec undef
@@ -183,11 +184,14 @@ function! enabler#Plugin(plugins, ...) "{{{3
                         let files += sfiles
                     endfor
                 endif
-                call s:LoadConfig('bundle/'. plugin)
+                call add(load_plugins, plugin)
             endif
         endif
     endfor
     let &rtp = join(rtp, ',')
+    for plugin in load_plugins
+        call s:LoadConfig('bundle/'. plugin)
+    endfor
     if load_now
         for file in files
             try
