@@ -201,10 +201,12 @@ Enableautocmd EVENT PATTERN PLUGIN[#GROUP]...
     plugin while VIM is running.
 
                                                     *:Enablegenerate*
-:Enablegenerate
+:Enablegenerate[!]
     Generate stub commands for all parseable plugins/bundles in 
     |g:enabler#auto#dirs| and save to |g:enabler_autofile|.
     See also |enabler#auto#Generate()|.
+
+    With the optional '!' bang, also call |:Enablehelptags|.
 
                                                     *:Autoenabler*
 :Autoenabler
@@ -249,7 +251,7 @@ g:enabler#auto#kinds           (default: {'ftplugins': 1, 'ftbundle': 1, 'plugin
       m ... maps
 
                                                     *enabler#auto#Generate()*
-enabler#auto#Generate(?tagfiles=[GUESS])
+enabler#auto#Generate(?make_helptags=0)
     This will generate |g:enabler_autofile|. It will set up stub 
     definitions that will make bundles easily available.
 
