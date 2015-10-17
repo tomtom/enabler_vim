@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    266
+" @Revision:    268
 
 
 if !exists('g:enabler#auto#dirs')
@@ -37,7 +37,7 @@ if !exists('g:enabler#auto#kinds')
 endif
 
 
-" :display: enabler#auto#Generate(?tagfiles=[GUESS])
+" :display: enabler#auto#Generate(?make_helptags=0)
 " This will generate |g:enabler_autofile|. It will set up stub 
 " definitions that will make bundles easily available.
 "
@@ -49,6 +49,7 @@ function! enabler#auto#Generate(...) "{{{3
     if empty(g:enabler_autofile)
         echoerr "Enabler: Please set g:enabler_autofile first"
     else
+        let make_helptags = a:0 >= 1 ? a:1 : 0
         let vfiles = s:ListVimFiles()
         let ftbundles = get(g:enabler#auto#kinds, 'ftbundle', 1) ? s:ScanFtbundles() : []
         let fts = get(g:enabler#auto#kinds, 'ftplugins', 1) ? s:ScanFtplugins(vfiles) : []
@@ -101,6 +102,9 @@ function! enabler#auto#Generate(...) "{{{3
         endfor
         call writefile(ftbundles + fts + auto, g:enabler_autofile)
         echom "Wrote :Autoenabler definitions to" g:enabler_autofile
+        if make_helptags
+            call enabler#helptags#Generate()
+        endif
     endif
 endf
 

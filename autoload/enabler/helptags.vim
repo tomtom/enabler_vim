@@ -1,13 +1,16 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    8
+" @Revision:    12
 
 
 " :nodoc:
 function! enabler#helptags#Generate() "{{{3
     echon 'Generating helptags (please wait) ... '
     redraw
-    call s:MakeHelpTags(g:enabler#dirs, 'guess') 
+    let dirs = copy(g:enabler#dirs)
+    let dirs_ftbundle = join(g:enabler#ftbundle_dirs, ',')
+    let dirs += split(globpath(dirs_ftbundle, '*'), '\n')
+    call s:MakeHelpTags(dirs, 'guess') 
     echo 'DONE!'
 endf
 

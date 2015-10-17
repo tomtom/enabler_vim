@@ -1,7 +1,7 @@
 " @Author:      Tom Link (micathom AT gmail com?subject=[vim])
 " @GIT:         http://github.com/tomtom/enabler_vim/
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    111
+" @Revision:    114
 " GetLatestVimScripts: 5101 0 enabler.vim
 
 if &cp || exists("loaded_enabler")
@@ -96,10 +96,13 @@ command! -bar -nargs=+ Enableautocmd call enabler#Autocmd(<f-args>)
 " plugin while VIM is running.
 command! -bar Enableupdate call enabler#Update()
 
+" :display: :Enablegenerate[!]
 " Generate stub commands for all parseable plugins/bundles in 
 " |g:enabler#auto#dirs| and save to |g:enabler_autofile|.
 " See also |enabler#auto#Generate()|.
-command! -bar -nargs=* -complete=file Enablegenerate call enabler#auto#Generate(<f-args>)
+"
+" With the optional '!' bang, also call |:Enablehelptags|.
+command! -bar -bang -nargs=* -complete=file Enablegenerate call enabler#auto#Generate(!empty("<bang>"))
 
 " Load |g:enabler_autofile|.
 command! -bar Autoenabler exec 'source' fnameescape(g:enabler_autofile)
