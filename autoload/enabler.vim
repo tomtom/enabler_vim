@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    555
+" @Revision:    559
 
 
 if !exists('g:enabler#dirs')
@@ -134,7 +134,7 @@ endf
 " :display: enabler#Plugin(plugins, ?load_now=0, ?[subdir_rxs], ?rtp=split(&rtp, ','))
 " If load_now == 1, load the vim files right away.
 function! enabler#Plugin(plugins, ...) "{{{3
-    let fname_rxs = ['[\/]_enabler.vim$', '[\/]plugin[\/][^\/]\{-}\.vim$']
+    let fname_rxs = ['[\/]_enabler.vim$', '[\/]plugin[\/].\{-}\.vim$']
     let load_now = a:0 >= 1 && a:1 >= 1 ? a:1 : !has('vim_starting')
     if a:0 >= 2
         let fname_rxs += a:2
@@ -176,7 +176,8 @@ function! enabler#Plugin(plugins, ...) "{{{3
                 endif
                 if load_now == 1
                     " echom "DBG glob dir" dir
-                    let vimfiles = split(glob(dir .'/plugin/*.vim'), '\n')
+                    let vimfiles = split(glob(dir .'/plugin/**/*.vim'), '\n')
+                    " echom "DBG vimfiles" string(vimfiles)
                     for fname_rx in fname_rxs
                         let sfiles = filter(copy(vimfiles), 'v:val =~# fname_rx')
                         let sfiles = map(sfiles, 'strpart(v:val, ndir)')
