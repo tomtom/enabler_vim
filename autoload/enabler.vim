@@ -1,6 +1,6 @@
 " @Author:      Tom Link (mailto:micathom AT gmail com?subject=[vim])
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    559
+" @Revision:    568
 
 
 if !exists('g:enabler#dirs')
@@ -25,6 +25,11 @@ if !exists('g:enabler#ftbundle_dirs')
     " necessary to keep the bundle in |g:enabler#auto#dirs| or to make 
     " sure an appropriate autocmd is executed on startup.
     let g:enabler#ftbundle_dirs = split(globpath(&rtp, 'ftbundle'), '\n')   "{{{2
+endif
+
+
+if !exists('g:enabler#ftbundle_aliases')
+    let g:enabler#ftbundle_aliases = {}   "{{{2
 endif
 
 
@@ -511,45 +516,49 @@ endf
 " :nodoc:
 function! enabler#AutoFiletype(ft) "{{{3
     " TLogVAR a:ft
-    if !empty(g:enabler#ftbundle_dirs)
-        let must_update = 0
-        let ftdirs = split(globpath(join(g:enabler#ftbundle_dirs, ','), a:ft), '\n')
-        " TLogVAR ftdirs
-        let allftbundles = []
-        for ftdir in ftdirs
-            let ftbundles = split(globpath(ftdir, '*'), '\n')
-            let ftbundles = filter(ftbundles, 'isdirectory(v:val)')
-            let ftbundles = map(ftbundles, 'matchstr(v:val, ''[\/]\zs[^\/]\+$'')')
-            let ftbundles = filter(ftbundles, '!empty(v:val)')
-            if !empty(ftbundles)
-                if index(g:enabler#dirs, ftdir) == -1
-                    call add(g:enabler#dirs, ftdir)
-                    let must_update = 1
+    if !empty(a:ft)
+        let ft = a:ft
+        if !empty(g:enabler#ftbundle_dirs)
+            let ftb = get(g:enabler#ftbundle_aliases, ft, ft)
+            let must_update = 0
+            let ftdirs = split(globpath(join(g:enabler#ftbundle_dirs, ','), ftb), '\n')
+            " TLogVAR ftdirs
+            let allftbundles = []
+            for ftdir in ftdirs
+                let ftbundles = split(globpath(ftdir, '*'), '\n')
+                let ftbundles = filter(ftbundles, 'isdirectory(v:val)')
+                let ftbundles = map(ftbundles, 'matchstr(v:val, ''[\/]\zs[^\/]\+$'')')
+                let ftbundles = filter(ftbundles, '!empty(v:val)')
+                if !empty(ftbundles)
+                    if index(g:enabler#dirs, ftdir) == -1
+                        call add(g:enabler#dirs, ftdir)
+                        let must_update = 1
+                    endif
+                    let allftbundles += ftbundles
                 endif
-                let allftbundles += ftbundles
+            endfor
+            if must_update
+                call enabler#Update()
             endif
-        endfor
-        if must_update
-            call enabler#Update()
+            if !empty(allftbundles)
+                " TLogVAR allftbundles
+                call enabler#Ftplugin(ftb, allftbundles)
+            endif
         endif
-        if !empty(allftbundles)
-            " TLogVAR allftbundles
-            call enabler#Ftplugin(a:ft, allftbundles)
+        call s:LoadConfig('ft/'. ft .'.vim')
+        let ftplugins = get(s:ftplugins, ft, [])
+        " echom "DBG enabler#AutoFiletype" ft string(ftplugins)
+        if !empty(ftplugins)
+            call enabler#Plugin(ftplugins, 1, [
+                        \ '[\/]ftdetect[\/]'. ft .'[\/][^\/]\{-}\.vim$',
+                        \ '[\/]ftplugin[\/]'. ft .'[\/][^\/]\{-}\.vim$',
+                        \ '[\/]ftplugin[\/]'. ft .'_[^\/]\{-}\.vim$',
+                        \ '[\/]indent[\/]'. ft .'[\/][^\/]\{-}\.vim$',
+                        \ '[\/]indent[\/]'. ft .'_[^\/]\{-}\.vim$',
+                        \ '[\/]syntax[\/]'. ft .'[\/][^\/]\{-}\.vim$',
+                        \ '[\/]syntax[\/]'. ft .'_[^\/]\{-}\.vim$',
+                        \ ])
         endif
-    endif
-    call s:LoadConfig('ft/'. a:ft .'.vim')
-    let ftplugins = get(s:ftplugins, a:ft, [])
-    " echom "DBG enabler#AutoFiletype" a:ft string(ftplugins)
-    if !empty(ftplugins)
-        call enabler#Plugin(ftplugins, 1, [
-                    \ '[\/]ftdetect[\/]'. a:ft .'[\/][^\/]\{-}\.vim$',
-                    \ '[\/]ftplugin[\/]'. a:ft .'[\/][^\/]\{-}\.vim$',
-                    \ '[\/]ftplugin[\/]'. a:ft .'_[^\/]\{-}\.vim$',
-                    \ '[\/]indent[\/]'. a:ft .'[\/][^\/]\{-}\.vim$',
-                    \ '[\/]indent[\/]'. a:ft .'_[^\/]\{-}\.vim$',
-                    \ '[\/]syntax[\/]'. a:ft .'[\/][^\/]\{-}\.vim$',
-                    \ '[\/]syntax[\/]'. a:ft .'_[^\/]\{-}\.vim$',
-                    \ ])
     endif
 endf
 
